@@ -7,6 +7,7 @@ import {
   createSubscriptionCheckout,
 } from "@/lib/dodopayments";
 import { createCheckoutSession } from "@/lib/lemonsqueezy";
+import { createPaddleCheckout } from "@/lib/paddle";
 import {
   createPaypalOrderLink,
   createPaypalSubscriptionLink,
@@ -330,6 +331,53 @@ async function SubscribePage({
         throw new Error("DodoPayments checkout link not found");
       }
       return redirect(dodoCheckoutResponse.payment_link);
+    case PlanProvider.PADDLE:
+      const paddleKey: keyof typeof plan | null =
+        type === PlanType.MONTHLY
+          ? "monthlyPaddlePriceId"
+          : type === PlanType.YEARLY
+            ? "yearlyPaddlePriceId"
+            : type === PlanType.ONETIME
+              ? "onetimePaddlePriceId"
+              : null;
+
+      if (!paddleKey) {
+        return notFound();
+      }
+      const paddlePriceId = plan[paddleKey];
+      if (!paddlePriceId) {
+        return notFound();
+      }
+
+      // Check if existing subscription for this user
+      if (user.paddleSubscriptionId) {
+        // If this is onetime plan then redirect to error page with message to
+        // cancel existing subscription
+        if (type === PlanType.ONETIME) {
+          return redirect(
+            `${process.env.NEXT_PUBLIC_APP_URL}/app/subscribe/error?code=PADDLE_CANCEL_BEFORE_SUBSCRIBING`
+          );
+        }
+        // If this is monthly or yearly plan then redirect to billing page
+        return redirect(`${process.env.NEXT_PUBLIC_APP_URL}/app/billing`);
+      }
+
+      const paddleCheckout = await createPaddleCheckout({
+        user: {
+          id: user.id,
+          email: session.user.email,
+          paddleCustomerId: user.paddleCustomerId,
+        },
+        priceId: paddlePriceId,
+      });
+
+      // Redirect to client-side page to open Paddle checkout modal
+      if (paddleCheckout.transactionId) {
+        return redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/app/subscribe/paddle?transactionId=${paddleCheckout.transactionId}`
+        );
+      } 
+     
     default:
       return <div>Provider not found</div>;
   }

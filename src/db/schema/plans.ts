@@ -43,6 +43,7 @@ export const plans = pgTable("plans", {
   monthlyStripePriceId: text("monthlyStripePriceId"),
   monthlyLemonSqueezyVariantId: text("monthlyLemonSqueezyVariantId"),
   monthlyDodoProductId: text("monthlyDodoProductId"),
+  monthlyPaddlePriceId: text("monthlyPaddlePriceId"),
   // Paypal plan id
   monthlyPaypalPlanId: text("monthlyPaypalPlanId"),
 
@@ -51,6 +52,7 @@ export const plans = pgTable("plans", {
   yearlyStripePriceId: text("yearlyStripePriceId"),
   yearlyLemonSqueezyVariantId: text("yearlyLemonSqueezyVariantId"),
   yearlyDodoProductId: text("yearlyDodoProductId"),
+  yearlyPaddlePriceId: text("yearlyPaddlePriceId"),
   yearlyPaypalPlanId: text("yearlyPaypalPlanId"),
   
   onetimePrice: integer("onetimePrice"),
@@ -58,6 +60,7 @@ export const plans = pgTable("plans", {
   onetimeStripePriceId: text("onetimeStripePriceId"),
   onetimeLemonSqueezyVariantId: text("onetimeLemonSqueezyVariantId"),
   onetimeDodoProductId: text("onetimeDodoProductId"),
+  onetimePaddlePriceId: text("onetimePaddlePriceId"),
   onetimePaypalPlanId: text("onetimePaypalPlanId"), // Not Required, Added for standardization
   
   quotas: jsonb("quotas").$type<Quotas>(),

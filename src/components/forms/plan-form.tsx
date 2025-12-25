@@ -46,11 +46,13 @@ export function PlanForm({
       monthlyStripePriceId: "",
       monthlyLemonSqueezyVariantId: "",
       monthlyDodoProductId: "",
+      monthlyPaddlePriceId: "",
       monthlyPaypalPlanId: "",
       hasYearlyPricing: false,
       yearlyStripePriceId: "",
       yearlyLemonSqueezyVariantId: "",
       yearlyDodoProductId: "",
+      yearlyPaddlePriceId: "",
       yearlyPaypalPlanId: "",
       monthlyPrice: 0,
       monthlyPriceAnchor: 0,
@@ -60,6 +62,7 @@ export function PlanForm({
       onetimeStripePriceId: "",
       onetimeLemonSqueezyVariantId: "",
       onetimeDodoProductId: "",
+      onetimePaddlePriceId: "",
       onetimePriceAnchor: 0,
       onetimePaypalPlanId: "",
       quotas: {
@@ -300,6 +303,19 @@ export function PlanForm({
                     />
                     <FormField
                       control={form.control}
+                      name="monthlyPaddlePriceId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Paddle Price ID</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="monthlyPaypalPlanId"
                       render={({ field }) => (
                         <FormItem>
@@ -400,6 +416,19 @@ export function PlanForm({
                     />
                     <FormField
                       control={form.control}
+                      name="yearlyPaddlePriceId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Paddle Price ID</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="yearlyPaypalPlanId"
                       render={({ field }) => (
                         <FormItem>
@@ -491,6 +520,19 @@ export function PlanForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Dodo Product ID</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="onetimePaddlePriceId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Paddle Price ID</FormLabel>
                           <FormControl>
                             <Input {...field} value={field.value || ""} />
                           </FormControl>

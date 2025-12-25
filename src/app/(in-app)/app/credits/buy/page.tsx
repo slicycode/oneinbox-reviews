@@ -16,6 +16,7 @@ import {
 } from "@/lib/credits/credits";
 import { createPaypalCreditOrderLink } from "@/lib/paypal/api";
 import { createCreditCheckout } from "@/lib/dodopayments";
+import { createPaddleCreditCheckout } from "@/lib/paddle";
 import { enableCredits } from "@/lib/credits/config";
 
 async function CreditsBuyPage({
@@ -249,6 +250,37 @@ async function CreditsBuyPage({
         throw new Error("DodoPayments checkout link not found");
       }
       return redirect(dodoCheckoutResponse.payment_link);
+
+    case PlanProvider.PADDLE:
+      const paddleProductId = process.env.PADDLE_CREDITS_PRODUCT_ID;
+      if (!paddleProductId) {
+        throw new Error("Paddle credits product ID not found in environment variables");
+      }
+
+      // Create Paddle checkout
+      const paddleCheckout = await createPaddleCreditCheckout({
+        user: {
+          id: user.id,
+          email: session.user.email,
+          paddleCustomerId: user.paddleCustomerId,
+        },
+        productId: paddleProductId,
+        creditAmount: creditAmount,
+        creditType: creditType,
+        totalPrice: totalPrice,
+      });
+
+      if (paddleCheckout.transactionId) {
+        return redirect(
+          `${process.env.NEXT_PUBLIC_APP_URL}/app/subscribe/paddle?transactionId=${paddleCheckout.transactionId}`
+        );
+      }
+
+      if (!paddleCheckout.url) {
+        throw new Error("Paddle checkout URL not found");
+      }
+      return redirect(paddleCheckout.url);
+
     default:
       return redirect(
         `${process.env.NEXT_PUBLIC_APP_URL}/app/credits/buy/error?code=UNSUPPORTED_PROVIDER&message=Payment provider not supported`

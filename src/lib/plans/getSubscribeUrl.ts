@@ -11,6 +11,7 @@ export enum PlanProvider {
   LEMON_SQUEEZY = "lemonsqueezy",
   DODO = "dodo",
   PAYPAL = "paypal",
+  PADDLE = "paddle",
 }
 
 const trialPeriodDays = [7, 14];

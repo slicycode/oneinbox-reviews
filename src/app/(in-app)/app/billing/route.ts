@@ -6,9 +6,16 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import client from "@/lib/dodopayments/client";
 import { paypalContext } from "@/db/schema/paypal";
+import { createPaddleCustomerPortalSession } from "@/lib/paddle";
+import { users } from "@/db/schema/user";
 
 export const GET = withAuthRequired(async (req, context) => {
-  const user = await context.getUser();
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, context.session.user.id))
+    .limit(1)
+    .then((users) => users[0]);
 
   const dodoCustomerId = user.dodoCustomerId;
   if (dodoCustomerId) {
@@ -16,6 +23,20 @@ export const GET = withAuthRequired(async (req, context) => {
       await client.customers.customerPortal.create(dodoCustomerId);
     return redirect(customerPortalSession.link);
   }
+
+  const paddleCustomerId = user.paddleCustomerId;
+  if (paddleCustomerId) {
+    const portalSession =
+      await createPaddleCustomerPortalSession(paddleCustomerId);
+    if (portalSession.urls?.general?.overview) {
+      return redirect(portalSession.urls.general.overview);
+    } else {
+      return NextResponse.json({
+        message: "Unable to create Paddle customer portal session.",
+      });
+    }
+  }
+
   const stripeCustomerId = user.stripeCustomerId;
 
   if (stripeCustomerId) {

@@ -93,6 +93,8 @@ const withAuthRequired = (handler: WithManagerHandler) => {
           lemonSqueezySubscriptionId: users.lemonSqueezySubscriptionId,
           dodoCustomerId: users.dodoCustomerId,
           dodoSubscriptionId: users.dodoSubscriptionId,
+          paddleCustomerId: users.paddleCustomerId,
+          paddleSubscriptionId: users.paddleSubscriptionId,
           emailVerified: users.emailVerified,
           credits: users.credits,
         })

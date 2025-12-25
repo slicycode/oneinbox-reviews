@@ -36,6 +36,12 @@ importers:
       '@next/mdx':
         specifier: 16.0.1
         version: 16.0.1(@mdx-js/react@3.1.0(@types/react@19.2.2)(react@19.2.0))
+      '@paddle/paddle-js':
+        specifier: ^1.6.1
+        version: 1.6.1
+      '@paddle/paddle-node-sdk':
+        specifier: ^3.5.0
+        version: 3.5.0
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -1882,6 +1888,13 @@ packages:
   '@orama/orama@3.1.14':
     resolution: {integrity: sha512-Iq4RxYC7y0pA/hLgcUGpYYs5Vze4qNmJk0Qi1uIrg2bHGpm6A06nbjWcH9h4HQsddkDFFlanLj/zYBH3Sxdb4w==}
     engines: {node: '>= 20.0.0'}
+
+  '@paddle/paddle-js@1.6.1':
+    resolution: {integrity: sha512-Yh6i99Wz22EcJ0KyZfTxzzDHduet3fpKmqEKSmZlHxlgIXDyBjkzdGNWw3/yR7Esdvr6HuLu3WfDTod5lC0alw==}
+
+  '@paddle/paddle-node-sdk@3.5.0':
+    resolution: {integrity: sha512-/Ac1N5i01/YJhiqOKlfW+Rz+nfhkaCyqpkG2P5ByeUNERNFYbAOkNc/TaXO/Nhgf9r3PoatnXH6YSpEs4KdtjA==}
+    engines: {node: '>=20'}
 
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
@@ -8705,6 +8718,10 @@ snapshots:
   '@open-draft/until@2.1.0': {}
 
   '@orama/orama@3.1.14': {}
+
+  '@paddle/paddle-js@1.6.1': {}
+
+  '@paddle/paddle-node-sdk@3.5.0': {}
 
   '@panva/hkdf@1.2.1': {}
 
