@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Logo } from '@/components/tailark/logo'
+import { BuiltWithIndieKit } from '@/components/built-with-indiekit'
 
 const enterpriseLinks = [
     { href: '#', label: 'About' },
@@ -177,13 +178,16 @@ export default function Footer() {
                         </form>
                     </div>
                 </div>
-                <div className="bg-muted mt-16 flex items-center justify-between rounded-md p-4 px-6 py-3">
+                <div className="bg-muted mt-16 flex flex-col items-center justify-between gap-3 rounded-md p-4 px-6 py-3 sm:flex-row">
                     <span>&copy; tailus 2021 - Present</span>
-                    <Link
-                        href="#"
-                        className="text-muted-foreground hover:text-primary text-sm">
-                        Licence
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        <BuiltWithIndieKit />
+                        <Link
+                            href="#"
+                            className="text-muted-foreground hover:text-primary text-sm">
+                            Licence
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>
