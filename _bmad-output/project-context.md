@@ -1,5 +1,5 @@
 ---
-project_name: 'indie-kit'
+project_name: 'oneinbox-reviews'
 user_name: 'Root'
 date: '2026-01-15'
 sections_completed:

@@ -6,7 +6,7 @@ workflowType: 'architecture'
 lastStep: 8
 status: 'complete'
 completedAt: '2026-01-15'
-project_name: 'indie-kit'
+project_name: 'oneinbox-reviews'
 user_name: 'Root'
 date: '2026-01-15'
 ---
@@ -592,7 +592,7 @@ Initialize with `pnpm create next-app@latest oneinbox-reviews --typescript --tai
 ### Implementation Handoff
 
 **For AI Agents:**
-This architecture document is your complete guide for implementing indie-kit. Follow all decisions, patterns, and structures exactly as documented.
+This architecture document is your complete guide for implementing oneinbox-reviews. Follow all decisions, patterns, and structures exactly as documented.
 
 **First Implementation Priority:**
 Initialize with `pnpm create next-app@latest oneinbox-reviews --typescript --tailwind --eslint --app --turbopack --src-dir --import-alias "@/*"`
