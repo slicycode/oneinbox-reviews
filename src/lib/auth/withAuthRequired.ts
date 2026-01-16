@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema/user";
-import { Session } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
-import { plans } from "@/db/schema/plans";
-import { MeResponse } from "@/app/api/app/me/types";
+import { auth } from '@/auth'
+import { eq } from 'drizzle-orm'
+import { db } from '@/db'
+import { users } from '@/db/schema/user'
+import { Session } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { plans } from '@/db/schema/plans'
+import { MeResponse } from '@/app/api/app/me/types'
 
 interface WithManagerHandler {
   (
@@ -14,50 +14,77 @@ interface WithManagerHandler {
       session: NonNullable<
         Session & {
           user: {
-            id: string;
-            email: string;
-          };
+            id: string
+            email: string
+          }
         }
-      >;
-      getCurrentPlan: () => Promise<MeResponse["currentPlan"]>;
-      getUser: () => Promise<MeResponse["user"]>;
-      params: Promise<Record<string, unknown>>;
+      >
+      getCurrentPlan: () => Promise<MeResponse['currentPlan']>
+      getUser: () => Promise<MeResponse['user']>
+      params: Promise<Record<string, unknown>>
     }
-  ): Promise<NextResponse | Response>;
+  ): Promise<NextResponse | Response>
 }
 
 const withAuthRequired = (handler: WithManagerHandler) => {
   return async (
     req: NextRequest,
     context: {
-      params: Promise<Record<string, unknown>>;
+      params: Promise<Record<string, unknown>>
     }
   ) => {
-    const session = await auth();
+    const session = await auth()
 
     if (!session || !session.user || !session.user.id || !session.user.email) {
       return NextResponse.json(
         {
-          error: "Unauthorized",
-          message: "You are not authorized to perform this action",
+          error: 'Unauthorized',
+          message: 'You are not authorized to perform this action',
         },
         { status: 401 }
-      );
+      )
     }
 
-    const userId = session.user.id;
+    const userId = session.user.id
+
+    const userStatus = await db
+      .select({ deletedAt: users.deletedAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+      .then((rows) => rows[0])
+
+    if (!userStatus) {
+      return NextResponse.json(
+        {
+          error: 'User not found',
+          message: 'Account no longer exists',
+        },
+        { status: 404 }
+      )
+    }
+
+    if (userStatus.deletedAt) {
+      return NextResponse.json(
+        {
+          error: 'Account deleted',
+          message: 'This account has been deleted',
+        },
+        { status: 403 }
+      )
+    }
 
     const getCurrentPlan = async () => {
-      const user = await db.select().from(users).where(eq(users.id, userId));
+      const user = await db.select().from(users).where(eq(users.id, userId))
 
       if (!user) {
-        return null;
+        return null
       }
 
       // Get the current plan and quotas
 
       if (!user[0].planId) {
-        return null;
+        return null
       }
 
       const currentPlan = await db
@@ -69,14 +96,14 @@ const withAuthRequired = (handler: WithManagerHandler) => {
           default: plans.default,
         })
         .from(plans)
-        .where(eq(plans.id, user[0].planId));
+        .where(eq(plans.id, user[0].planId))
 
       if (!currentPlan.length) {
-        return null;
+        return null
       }
 
-      return currentPlan[0];
-    };
+      return currentPlan[0]
+    }
 
     const getUser = async () => {
       const user = await db
@@ -97,20 +124,21 @@ const withAuthRequired = (handler: WithManagerHandler) => {
           paddleSubscriptionId: users.paddleSubscriptionId,
           emailVerified: users.emailVerified,
           credits: users.credits,
+          deletedAt: users.deletedAt,
         })
         .from(users)
         .where(eq(users.id, userId))
-        .then((users) => users[0]);
-      return user;
-    };
+        .then((users) => users[0])
+      return user
+    }
 
     return await handler(req, {
       ...context,
       session: session,
       getCurrentPlan,
       getUser,
-    });
-  };
-};
+    })
+  }
+}
 
-export default withAuthRequired;
+export default withAuthRequired

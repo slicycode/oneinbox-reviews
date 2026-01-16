@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, User } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 import useUser from "@/lib/users/useUser";
 import {
@@ -19,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -35,6 +37,8 @@ export default function ProfilePage() {
   const { user, isLoading, mutate } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<ProfileUpdateValues>({
     resolver: zodResolver(profileUpdateSchema),
@@ -94,6 +98,40 @@ export default function ProfilePage() {
     }
   };
 
+  const deleteConfirmationText = "delete my account";
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== deleteConfirmationText) {
+      toast.error("Please enter the correct confirmation text");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/app/account/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ confirmation: deleteConfirmation }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete account");
+      }
+
+      toast.success("Account deletion requested");
+      await signOut({ callbackUrl: "/sign-in" });
+    } catch (error) {
+      console.error("Account deletion error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account"
+      );
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -111,7 +149,7 @@ export default function ProfilePage() {
       .toUpperCase() || "U";
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold">Profile Settings</h1>
         <p className="text-muted-foreground">
@@ -128,7 +166,10 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-6"
+            >
               <div className="flex flex-col gap-4">
                 <FormLabel>Profile Picture</FormLabel>
                 <div className="flex items-center gap-4">
@@ -180,7 +221,7 @@ export default function ProfilePage() {
               />
 
               {/* Email (Read-only) */}
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <FormLabel>Email Address</FormLabel>
                 <Input
                   value={user?.email || ""}
@@ -221,7 +262,7 @@ export default function ProfilePage() {
             Your account details and membership information.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Member Since</span>
             <span className="text-sm text-muted-foreground">
@@ -236,6 +277,43 @@ export default function ProfilePage() {
               {user?.id || "N/A"}
             </span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Delete Account</CardTitle>
+          <CardDescription>
+            Permanently delete your account and revoke access.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Alert variant="destructive">
+            <AlertTitle>Warning</AlertTitle>
+            <AlertDescription>
+              This action cannot be undone. Your access will be revoked
+              immediately.
+            </AlertDescription>
+          </Alert>
+          <div className="flex flex-col gap-2">
+            <FormLabel>
+              Type &quot;{deleteConfirmationText}&quot; to confirm
+            </FormLabel>
+            <Input
+              value={deleteConfirmation}
+              onChange={(event) => setDeleteConfirmation(event.target.value)}
+              placeholder={deleteConfirmationText}
+            />
+          </div>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAccount}
+            disabled={
+              isDeleting || deleteConfirmation !== deleteConfirmationText
+            }
+          >
+            {isDeleting ? "Deleting..." : "Delete Account"}
+          </Button>
         </CardContent>
       </Card>
     </div>
