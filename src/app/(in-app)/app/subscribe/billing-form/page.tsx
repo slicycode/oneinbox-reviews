@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { countries } from "countries-list";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
@@ -91,7 +91,10 @@ export default function BillingFormPage() {
     },
   });
 
-  const watchIsBusinessCustomer = form.watch("isBusinessCustomer");
+  const watchIsBusinessCustomer = useWatch({
+    control: form.control,
+    name: "isBusinessCustomer",
+  });
 
   function onSubmit(values: BillingFormValues) {
     setIsSubmitting(true);

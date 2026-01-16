@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
                     </div>
 
                     <div className="mt-6 text-center">
-                        <p className="text-muted-foreground text-sm">We'll send you a link to reset your password.</p>
+                        <p className="text-muted-foreground text-sm">We&apos;ll send you a link to reset your password.</p>
                     </div>
                 </div>
 

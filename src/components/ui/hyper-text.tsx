@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 
 type CharacterSet = string[] | readonly string[];
 
+type MotionTag = keyof JSX.IntrinsicElements;
+
 interface HyperTextProps extends MotionProps {
   /** The text content to be animated */
   children: string;
@@ -16,7 +18,7 @@ interface HyperTextProps extends MotionProps {
   /** Delay before animation starts in milliseconds */
   delay?: number;
   /** Component to render as - defaults to div */
-  as?: React.ElementType;
+  as?: MotionTag;
   /** Whether to start animation when element comes into view */
   startOnView?: boolean;
   /** Whether to trigger animation on hover */
@@ -42,9 +44,8 @@ export default function HyperText({
   characterSet = DEFAULT_CHARACTER_SET,
   ...props
 }: HyperTextProps) {
-  const MotionComponent = motion.create(Component, {
-    forwardMotionProps: true,
-  });
+  const MotionComponent =
+    motion[Component as keyof typeof motion] || motion.div;
 
   const [displayText, setDisplayText] = useState<string[]>(() =>
     children.split(""),

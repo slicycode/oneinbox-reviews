@@ -54,7 +54,7 @@ export default function FeaturesSection() {
                                 </span>
                                 <span className="text-muted-foreground text-xs">Sat 22 Feb</span>
                             </div>
-                            <div className="rounded-(--radius) bg-background mt-1.5 w-3/5 border p-3 text-xs">Hey, I'm having trouble with my account.</div>
+                            <div className="rounded-(--radius) bg-background mt-1.5 w-3/5 border p-3 text-xs">Hey, I&apos;m having trouble with my account.</div>
                         </div>
 
                         <div>
@@ -74,7 +74,7 @@ export default function FeaturesSection() {
                         </span>
 
                         <p className="my-8 text-2xl font-semibold">
-                            Monitor your application's activity in real-time. <span className="text-muted-foreground"> Instantly identify and resolve issues.</span>
+                            Monitor your application&apos;s activity in real-time. <span className="text-muted-foreground"> Instantly identify and resolve issues.</span>
                         </p>
                     </div>
                     <MonitoringChart />

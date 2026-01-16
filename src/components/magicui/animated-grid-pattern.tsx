@@ -86,6 +86,7 @@ export function AnimatedGridPattern({
     if (numSquares !== prevNumSquares.current) {
       prevNumSquares.current = numSquares;
       if (dimensions.width && dimensions.height) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSquares(generateSquares(numSquares, dimensions));
       }
     }
