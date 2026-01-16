@@ -48,10 +48,10 @@ development_status:
   1-5-team-invites-roles-post-mvp: backlog
   1-6-deactivate-team-access-post-mvp: backlog
   1-7-account-deletion-fr35-data-deletion-trigger-fr36: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
-  epic-2: backlog
-  2-1-connect-google-business-profile: backlog
+  epic-2: in-progress
+  2-1-connect-google-business-profile: review
   2-2-connection-status-last-auth-health: backlog
   2-3-re-authenticate-expired-connection: backlog
   2-4-disconnect-platform: backlog
