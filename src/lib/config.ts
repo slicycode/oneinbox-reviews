@@ -11,7 +11,7 @@ export const appConfig: AppConfigPublic = {
   ],
   description: 'OneInbox Review is a platform for reviewing OneInbox.',
   auth: {
-    enablePasswordAuth: false, // Set to true to enable password-based authentication
+    enablePasswordAuth: true, // Enable password-based authentication
   },
   legal: {
     address: {

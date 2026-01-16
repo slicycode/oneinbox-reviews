@@ -6,7 +6,7 @@ import { FaSpinner } from "react-icons/fa";
 
 export default function SignOutPage() {
   useEffect(() => {
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: "/sign-in" });
   }, []);
 
   return (

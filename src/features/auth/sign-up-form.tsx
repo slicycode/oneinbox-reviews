@@ -1,58 +1,44 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { FaSpinner } from "react-icons/fa";
 import { toast } from "sonner";
-import { setPasswordSchema, type SetPasswordInput } from "@/lib/validations/auth.schema";
-import { appConfig } from "@/lib/config";
+import {
+  signUpWithPasswordSchema,
+  type SignUpWithPasswordInput,
+} from "@/lib/validations/auth.schema";
+import { signIn } from "next-auth/react";
 
-export default function SetPasswordPage() {
+export function SignUpForm({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [tokenError, setTokenError] = React.useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const token = searchParams?.get("token");
-
-  React.useEffect(() => {
-    if (!token) {
-      setTokenError("Invalid or missing token. Please request a new signup link.");
-    }
-  }, [token]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SetPasswordInput>({
-    resolver: zodResolver(setPasswordSchema),
+  } = useForm<SignUpWithPasswordInput>({
+    resolver: zodResolver(signUpWithPasswordSchema),
   });
 
-  const onSubmit = async (data: SetPasswordInput) => {
-    if (!token) {
-      toast.error("Invalid token");
-      return;
-    }
-
+  const onSubmit = async (data: SignUpWithPasswordInput) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/complete-signup", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          token,
-          password: data.password,
-          confirmPassword: data.confirmPassword,
-        }),
+        body: JSON.stringify(data),
       });
 
       const result = await response.json();
@@ -62,15 +48,8 @@ export default function SetPasswordPage() {
         return;
       }
 
-      const email = result.email as string | undefined;
-      if (!email) {
-        toast.error("Account created but sign-in failed. Please sign in manually.");
-        router.push("/sign-in");
-        return;
-      }
-
       const signInResult = await signIn("credentials", {
-        email,
+        email: data.email,
         password: data.password,
         redirect: false,
         callbackUrl: "/app",
@@ -78,50 +57,56 @@ export default function SetPasswordPage() {
 
       if (signInResult?.error) {
         toast.error("Account created but sign-in failed. Please sign in manually.");
-        router.push("/sign-in");
         return;
       }
 
       toast.success("Account created successfully!");
-      router.push(signInResult?.url ?? "/app");
+      window.location.href = signInResult?.url ?? "/app";
     } catch (error) {
-      console.error("Set password error:", error);
+      console.error("Signup error:", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (tokenError) {
-    return (
-      <div className="flex flex-col gap-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight mb-2">
-            Invalid Link
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {tokenError}
-          </p>
-        </div>
-        <Button onClick={() => router.push("/sign-up")} className="w-full py-6">
-          Go to Sign Up
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">
-          Set Your Password
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Create a secure password for your {appConfig.projectName} account
-        </p>
-      </div>
-
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
+            placeholder="John Doe"
+            type="text"
+            autoComplete="name"
+            disabled={isLoading}
+            {...register("name")}
+            className="w-full py-6"
+          />
+          {errors.name && (
+            <p className="text-sm text-destructive">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email address</Label>
+          <Input
+            id="email"
+            placeholder="name@example.com"
+            type="email"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            disabled={isLoading}
+            {...register("email")}
+            className="w-full py-6"
+          />
+          {errors.email && (
+            <p className="text-sm text-destructive">{errors.email.message}</p>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -150,7 +135,9 @@ export default function SetPasswordPage() {
             className="w-full py-6"
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
@@ -159,7 +146,6 @@ export default function SetPasswordPage() {
           Create Account
         </Button>
       </form>
-    </>
+    </div>
   );
 }
-
