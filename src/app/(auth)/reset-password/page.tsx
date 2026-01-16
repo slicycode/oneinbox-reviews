@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { appConfig } from "@/lib/config";
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { ResetPasswordForm } from "@/features/auth/reset-password-form";
 
 export const metadata: Metadata = {
   title: "Reset Password",

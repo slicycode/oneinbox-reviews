@@ -43,7 +43,7 @@ development_status:
   epic-1: in-progress
   1-1-project-initialization-starter-template: done
   1-2-account-registration-sign-in: done
-  1-3-password-reset: backlog
+  1-3-password-reset: done
   1-4-billing-profile-basics: backlog
   1-5-team-invites-roles-post-mvp: backlog
   1-6-deactivate-team-access-post-mvp: backlog
