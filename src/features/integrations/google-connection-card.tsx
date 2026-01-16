@@ -15,12 +15,16 @@ interface GoogleConnectionCardProps {
   isConnected: boolean;
   accountId?: string;
   email?: string | null;
+  status?: "active" | "expired" | "error" | null;
+  lastAuthAt?: string | null;
 }
 
 export function GoogleConnectionCard({
   isConnected,
   accountId,
   email,
+  status,
+  lastAuthAt,
 }: GoogleConnectionCardProps) {
   const [isConnecting, setIsConnecting] = React.useState(false);
 
@@ -49,11 +53,21 @@ export function GoogleConnectionCard({
         {isConnected ? (
           <div className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
-              Status: <span className="text-foreground">Active</span>
+              Status:{" "}
+              <span className="text-foreground">
+                {status
+                  ? status.charAt(0).toUpperCase() + status.slice(1)
+                  : "Active"}
+              </span>
             </p>
             {email ? (
               <p className="text-sm text-muted-foreground">
                 Connected as <span className="text-foreground">{email}</span>
+              </p>
+            ) : null}
+            {lastAuthAt ? (
+              <p className="text-xs text-muted-foreground">
+                Last auth: {new Date(lastAuthAt).toLocaleString()}
               </p>
             ) : null}
             {accountId ? (

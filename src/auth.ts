@@ -11,7 +11,7 @@ import MagicLinkEmail from './emails/MagicLinkEmail'
 import sendMail from './lib/email/sendMail'
 import { appConfig } from './lib/config'
 import { decryptJson } from './lib/encryption/edge-jwt'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 // Overrides default session type
 declare module 'next-auth' {
@@ -133,6 +133,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         iat: token.iat,
         exp: token.exp,
         jti: token.jti,
+      }
+    },
+  },
+  events: {
+    async signIn({ account }) {
+      if (
+        account?.provider === 'google' &&
+        account.providerAccountId
+      ) {
+        try {
+          await db
+            .update(accounts)
+            .set({
+              connectionStatus: 'active',
+              lastAuthAt: new Date(),
+            })
+            .where(
+              and(
+                eq(accounts.provider, account.provider),
+                eq(accounts.providerAccountId, account.providerAccountId)
+              )
+            )
+        } catch (error) {
+          console.error('Failed to update Google connection status:', error)
+        }
       }
     },
   },

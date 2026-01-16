@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   index,
+  pgEnum,
 } from 'drizzle-orm/pg-core'
 
 import type { AdapterAccountType } from 'next-auth/adapters'
@@ -17,6 +18,12 @@ import { type CreditType } from '@/lib/credits/credits'
 type CreditRecord = {
   [K in CreditType]?: number
 }
+
+export const connectionStatusEnum = pgEnum('connection_status', [
+  'active',
+  'expired',
+  'error',
+])
 
 export const users = pgTable(
   'app_user',
@@ -66,11 +73,15 @@ export const accounts = pgTable(
     scope: text('scope'),
     id_token: text('id_token'),
     session_state: text('session_state'),
+    connectionStatus:
+      connectionStatusEnum('connection_status').default('active'),
+    lastAuthAt: timestamp('last_auth_at', { mode: 'date' }),
   },
   (account) => [
     primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
+    index('account_user_provider_idx').on(account.userId, account.provider),
   ]
 )
 
