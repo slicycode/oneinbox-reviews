@@ -16,7 +16,7 @@
 #   - skipped: Optional/conditional workflow that was skipped
 
 generated: '2026-01-15T20:55:16Z'
-project: 'OneInbox-Reviews'
+project: 'oneinbox-reviews'
 project_type: '{{project_type}}'
 selected_track: '{{selected_track}}'
 field_type: '{{field_type}}'
