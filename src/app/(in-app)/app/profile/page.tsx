@@ -30,6 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { S3Uploader } from "@/components/ui/s3-uploader";
 
@@ -171,7 +172,7 @@ export default function ProfilePage() {
               className="flex flex-col gap-6"
             >
               <div className="flex flex-col gap-4">
-                <FormLabel>Profile Picture</FormLabel>
+                <Label>Profile Picture</Label>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-20 w-20">
                     <AvatarImage
@@ -222,7 +223,7 @@ export default function ProfilePage() {
 
               {/* Email (Read-only) */}
               <div className="flex flex-col gap-2">
-                <FormLabel>Email Address</FormLabel>
+                <Label>Email Address</Label>
                 <Input
                   value={user?.email || ""}
                   disabled
@@ -296,9 +297,9 @@ export default function ProfilePage() {
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
-            <FormLabel>
+            <Label>
               Type &quot;{deleteConfirmationText}&quot; to confirm
-            </FormLabel>
+            </Label>
             <Input
               value={deleteConfirmation}
               onChange={(event) => setDeleteConfirmation(event.target.value)}

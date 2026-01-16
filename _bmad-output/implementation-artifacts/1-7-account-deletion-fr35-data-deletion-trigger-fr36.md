@@ -1,6 +1,6 @@
 # Story 1.7: Account Deletion (FR35) + Data Deletion Trigger (FR36)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
