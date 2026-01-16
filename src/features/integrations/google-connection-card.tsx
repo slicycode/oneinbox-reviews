@@ -41,6 +41,8 @@ export function GoogleConnectionCard({
     }
   };
 
+  const showReconnect = isConnected && status === "expired";
+
   return (
     <Card>
       <CardHeader>
@@ -88,6 +90,15 @@ export function GoogleConnectionCard({
             disabled={isConnecting}
           >
             {isConnecting ? "Connecting..." : "Connect Google"}
+          </Button>
+        ) : showReconnect ? (
+          <Button
+            variant="secondary"
+            className="w-fit"
+            onClick={handleConnect}
+            disabled={isConnecting}
+          >
+            {isConnecting ? "Reconnecting..." : "Reconnect Google"}
           </Button>
         ) : null}
       </CardContent>

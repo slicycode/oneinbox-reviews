@@ -12,6 +12,7 @@ import sendMail from './lib/email/sendMail'
 import { appConfig } from './lib/config'
 import { decryptJson } from './lib/encryption/edge-jwt'
 import { and, eq } from 'drizzle-orm'
+import { enqueueReviewBackfill } from '@/lib/jobs/review-backfill'
 
 // Overrides default session type
 declare module 'next-auth' {
@@ -137,12 +138,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   events: {
-    async signIn({ account }) {
-      if (
-        account?.provider === 'google' &&
-        account.providerAccountId
-      ) {
+    async signIn({ account, isNewUser }) {
+      if (account?.provider === 'google' && account.providerAccountId) {
         try {
+          const existingAccount = await db
+            .select({
+              userId: accounts.userId,
+              connectionStatus: accounts.connectionStatus,
+            })
+            .from(accounts)
+            .where(
+              and(
+                eq(accounts.provider, account.provider),
+                eq(accounts.providerAccountId, account.providerAccountId)
+              )
+            )
+            .limit(1)
+            .then((rows) => rows[0])
+
           await db
             .update(accounts)
             .set({
@@ -155,6 +168,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 eq(accounts.providerAccountId, account.providerAccountId)
               )
             )
+
+          if (!isNewUser && existingAccount?.connectionStatus === 'expired') {
+            await enqueueReviewBackfill(existingAccount.userId, 'google')
+          }
         } catch (error) {
           console.error('Failed to update Google connection status:', error)
         }
