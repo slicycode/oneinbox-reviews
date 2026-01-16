@@ -53,8 +53,8 @@ development_status:
   epic-2: in-progress
   2-1-connect-google-business-profile: done
   2-2-connection-status-last-auth-health: done
-  2-3-re-authenticate-expired-connection: review
-  2-4-disconnect-platform: backlog
+  2-3-re-authenticate-expired-connection: done
+  2-4-disconnect-platform: review
   epic-2-retrospective: optional
 
   epic-3: backlog

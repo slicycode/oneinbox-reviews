@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface GoogleConnectionCardProps {
   isConnected: boolean;
@@ -27,6 +40,8 @@ export function GoogleConnectionCard({
   lastAuthAt,
 }: GoogleConnectionCardProps) {
   const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isDisconnecting, setIsDisconnecting] = React.useState(false);
+  const router = useRouter();
 
   const handleConnect = async () => {
     if (isConnecting) {
@@ -38,6 +53,34 @@ export function GoogleConnectionCard({
       await signIn("google", { callbackUrl: "/app/integrations" });
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (isDisconnecting) {
+      return;
+    }
+
+    setIsDisconnecting(true);
+    try {
+      const response = await fetch("/api/app/integrations/google", {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to disconnect Google");
+      }
+
+      toast.success("Google disconnected");
+      router.refresh();
+    } catch (error) {
+      console.error("Disconnect error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to disconnect Google"
+      );
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -91,16 +134,46 @@ export function GoogleConnectionCard({
           >
             {isConnecting ? "Connecting..." : "Connect Google"}
           </Button>
-        ) : showReconnect ? (
-          <Button
-            variant="secondary"
-            className="w-fit"
-            onClick={handleConnect}
-            disabled={isConnecting}
-          >
-            {isConnecting ? "Reconnecting..." : "Reconnect Google"}
-          </Button>
-        ) : null}
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {showReconnect ? (
+              <Button
+                variant="secondary"
+                onClick={handleConnect}
+                disabled={isConnecting}
+              >
+                {isConnecting ? "Reconnecting..." : "Reconnect Google"}
+              </Button>
+            ) : null}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isDisconnecting}>
+                  {isDisconnecting ? "Disconnecting..." : "Disconnect Google"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Disconnect Google?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will stop sync jobs for this account. Historical reviews
+                    are retained.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDisconnecting}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDisconnect}
+                    disabled={isDisconnecting}
+                  >
+                    {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
