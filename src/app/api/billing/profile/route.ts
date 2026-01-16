@@ -7,6 +7,11 @@ import { eq } from 'drizzle-orm'
 
 export const GET = withAuthRequired(async (_req, context) => {
   const userId = context.session.user.id
+  const user = await context.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
 
   const profile = await db
     .select()
@@ -30,6 +35,11 @@ export const PUT = withAuthRequired(async (req, context) => {
   }
 
   const userId = context.session.user.id
+  const user = await context.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
   const payload = validation.data
   const normalizedTaxId = payload.isBusinessCustomer
     ? payload.taxId?.trim() || null

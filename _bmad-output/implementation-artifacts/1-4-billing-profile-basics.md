@@ -33,7 +33,7 @@ so that my account records stay accurate.
   - [x] Allow only account owners to update billing profile details.
   - [x] Show appropriate error if not owner.
 - [x] Tests
-  - [x] Add co-located tests for validation and access control.
+  - [ ] Add co-located tests for validation and access control.
   - [x] If no test runner is configured, document manual checks in Dev Agent Record.
 
 ## Dev Notes
@@ -72,6 +72,7 @@ No automated test runner configured; manual checks performed.
 - Created billing profile form under `src/features/billing` with prefilled data.
 - Added billing profile settings page for signed-in users.
 - Manual checks: load billing profile page, update fields, verify validation errors.
+- MVP assumption: account owner == authenticated user (no team roles yet).
 
 ### File List
 
