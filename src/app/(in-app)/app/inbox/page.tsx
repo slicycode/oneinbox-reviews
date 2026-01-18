@@ -107,12 +107,16 @@ export default async function InboxPage({
     : "Never";
 
   const alertSettingsRow = await db
-    .select({ emailAlertsEnabled: alertSettings.emailAlertsEnabled })
+    .select({
+      emailAlertsEnabled: alertSettings.emailAlertsEnabled,
+      negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+    })
     .from(alertSettings)
     .where(eq(alertSettings.userId, session.user.id))
     .limit(1)
     .then((rows) => rows[0] ?? null);
   const emailAlertsEnabled = alertSettingsRow?.emailAlertsEnabled ?? false;
+  const negativeReviewThreshold = alertSettingsRow?.negativeReviewThreshold ?? 2;
 
   return (
     <div className="flex flex-col gap-6">
@@ -130,7 +134,10 @@ export default async function InboxPage({
         <ReviewSyncButton />
       </div>
       <ReviewFilters defaultValues={filters} />
-      <EmailAlertsForm initialEnabled={emailAlertsEnabled} />
+      <EmailAlertsForm
+        initialEnabled={emailAlertsEnabled}
+        initialThreshold={negativeReviewThreshold}
+      />
       <ReviewList reviews={reviewData} />
     </div>
   );

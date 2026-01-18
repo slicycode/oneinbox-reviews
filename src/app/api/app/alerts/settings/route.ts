@@ -7,7 +7,10 @@ import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
 
 export const GET = withAuthRequired(async (_req, context) => {
   const settings = await db
-    .select({ emailAlertsEnabled: alertSettings.emailAlertsEnabled })
+    .select({
+      emailAlertsEnabled: alertSettings.emailAlertsEnabled,
+      negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+    })
     .from(alertSettings)
     .where(eq(alertSettings.userId, context.session.user.id))
     .limit(1)
@@ -15,6 +18,7 @@ export const GET = withAuthRequired(async (_req, context) => {
 
   return NextResponse.json({
     emailAlertsEnabled: settings?.emailAlertsEnabled ?? false,
+    negativeReviewThreshold: settings?.negativeReviewThreshold ?? 2,
   });
 });
 
@@ -40,6 +44,7 @@ export const PUT = withAuthRequired(async (req, context) => {
     .values({
       userId: context.session.user.id,
       emailAlertsEnabled: parsed.data.emailAlertsEnabled,
+      negativeReviewThreshold: parsed.data.negativeReviewThreshold,
       createdAt: now,
       updatedAt: now,
     })
@@ -47,13 +52,18 @@ export const PUT = withAuthRequired(async (req, context) => {
       target: alertSettings.userId,
       set: {
         emailAlertsEnabled: parsed.data.emailAlertsEnabled,
+        negativeReviewThreshold: parsed.data.negativeReviewThreshold,
         updatedAt: now,
       },
     })
-    .returning({ emailAlertsEnabled: alertSettings.emailAlertsEnabled })
+    .returning({
+      emailAlertsEnabled: alertSettings.emailAlertsEnabled,
+      negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+    })
     .then((rows) => rows[0]);
 
   return NextResponse.json({
     emailAlertsEnabled: settings.emailAlertsEnabled,
+    negativeReviewThreshold: settings.negativeReviewThreshold,
   });
 });

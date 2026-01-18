@@ -1,5 +1,5 @@
 import { render } from "@react-email/components";
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { reviews } from "@/db/schema/reviews";
@@ -22,7 +22,10 @@ export const sendNewReviewAlert = async (params: {
   }
 
   const settings = await db
-    .select({ emailAlertsEnabled: alertSettings.emailAlertsEnabled })
+    .select({
+      emailAlertsEnabled: alertSettings.emailAlertsEnabled,
+      negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+    })
     .from(alertSettings)
     .where(eq(alertSettings.userId, params.userId))
     .limit(1)
@@ -44,6 +47,7 @@ export const sendNewReviewAlert = async (params: {
   }
 
   const createdSince = params.since ?? new Date(Date.now() - 10 * 60 * 1000);
+  const threshold = settings.negativeReviewThreshold ?? 2;
   const reviewRows = await db
     .select({
       rating: reviews.rating,
@@ -57,7 +61,8 @@ export const sendNewReviewAlert = async (params: {
       and(
         eq(reviews.userId, params.userId),
         eq(reviews.provider, params.provider),
-        gte(reviews.createdAt, createdSince)
+        gte(reviews.createdAt, createdSince),
+        lte(reviews.rating, threshold)
       )
     )
     .orderBy(desc(reviews.createdAt))
@@ -75,13 +80,13 @@ export const sendNewReviewAlert = async (params: {
         ...row,
         reviewCreatedAt: row.reviewCreatedAt.toISOString(),
       })),
-      totalNew: params.insertedCount,
+      totalNew: reviewRows.length,
       inboxUrl,
     })
   );
 
-  const subject = `${params.insertedCount} new review${
-    params.insertedCount === 1 ? "" : "s"
+  const subject = `${reviewRows.length} new review${
+    reviewRows.length === 1 ? "" : "s"
   } on ${appConfig.projectName}`;
 
   await sendMail(user.email, subject, html);

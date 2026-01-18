@@ -15,29 +15,39 @@ import {
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
 
 type AlertSettingsFormValues = {
   emailAlertsEnabled: boolean;
+  negativeReviewThreshold: number;
 };
 
 interface EmailAlertsFormProps {
   initialEnabled: boolean;
+  initialThreshold: number;
 }
 
-export function EmailAlertsForm({ initialEnabled }: EmailAlertsFormProps) {
+export function EmailAlertsForm({
+  initialEnabled,
+  initialThreshold,
+}: EmailAlertsFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<AlertSettingsFormValues>({
     resolver: zodResolver(alertSettingsSchema),
     defaultValues: {
       emailAlertsEnabled: initialEnabled,
+      negativeReviewThreshold: initialThreshold,
     },
   });
 
   React.useEffect(() => {
-    form.reset({ emailAlertsEnabled: initialEnabled });
-  }, [form, initialEnabled]);
+    form.reset({
+      emailAlertsEnabled: initialEnabled,
+      negativeReviewThreshold: initialThreshold,
+    });
+  }, [form, initialEnabled, initialThreshold]);
 
   const onSubmit = async (values: AlertSettingsFormValues) => {
     setIsSubmitting(true);
@@ -56,7 +66,10 @@ export function EmailAlertsForm({ initialEnabled }: EmailAlertsFormProps) {
       }
 
       toast.success("Alert settings updated");
-      form.reset({ emailAlertsEnabled: result.emailAlertsEnabled });
+      form.reset({
+        emailAlertsEnabled: result.emailAlertsEnabled,
+        negativeReviewThreshold: result.negativeReviewThreshold,
+      });
     } catch (error) {
       console.error("Alert settings update failed:", error);
       toast.error("Something went wrong");
@@ -89,6 +102,27 @@ export function EmailAlertsForm({ initialEnabled }: EmailAlertsFormProps) {
                   Receive an email whenever new reviews are ingested.
                 </FormDescription>
               </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="negativeReviewThreshold"
+          render={({ field }) => (
+            <FormItem className="flex flex-col gap-2 rounded-md border p-4">
+              <FormLabel>Negative review threshold</FormLabel>
+              <FormDescription>
+                Send alerts only for reviews rated at or below this value.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={field.value}
+                  onChange={(event) => field.onChange(Number(event.target.value))}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

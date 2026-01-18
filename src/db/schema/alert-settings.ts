@@ -1,4 +1,12 @@
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { users } from "./user";
 
 export const alertSettings = pgTable(
@@ -11,6 +19,9 @@ export const alertSettings = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     emailAlertsEnabled: boolean("email_alerts_enabled").default(false).notNull(),
+    negativeReviewThreshold: integer("negative_review_threshold")
+      .default(2)
+      .notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },

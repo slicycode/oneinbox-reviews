@@ -76,7 +76,7 @@ development_status:
 
   epic-5: in-progress
   5-1-email-alerts-new-reviews: review
-  5-2-alert-thresholds-negative-reviews: backlog
+  5-2-alert-thresholds-negative-reviews: review
   5-3-pause-resume-alerts: backlog
   5-4-sync-failure-stale-data-alerts: backlog
   5-5-support-sync-health-view: backlog
