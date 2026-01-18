@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface ReviewListItem {
   id: string;
@@ -34,13 +36,18 @@ export function ReviewList({ reviews }: ReviewListProps) {
     <div className="flex flex-col gap-4">
       {reviews.map((review) => (
         <Card key={review.id}>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-start justify-between gap-3">
             <CardTitle className="text-base">
               {review.authorName || "Anonymous"} • {review.rating}★
             </CardTitle>
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/app/inbox/${review.id}`}>View details</Link>
+            </Button>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">{review.content}</p>
+            <p className="text-sm text-muted-foreground line-clamp-3">
+              {review.content}
+            </p>
             <p className="text-xs text-muted-foreground">
               {new Date(review.reviewCreatedAt).toLocaleString()}
             </p>
