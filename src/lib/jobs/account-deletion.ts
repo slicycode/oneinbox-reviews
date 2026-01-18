@@ -1,5 +1,6 @@
 import { db } from '@/db'
 import { accountDeletionJobs } from '@/db/schema/account-deletion-job'
+import { eq, inArray } from 'drizzle-orm'
 
 type AccountDeletionJob = {
   id: string
@@ -7,6 +8,11 @@ type AccountDeletionJob = {
   requestedAt: string
   status: string
   event: 'account.deletion.requested'
+}
+
+type AccountDeletionProcessResult = {
+  processed: number
+  processedAt: string
 }
 
 export const enqueueAccountDeletion = async (
@@ -47,3 +53,41 @@ export const enqueueAccountDeletion = async (
   )
   return payload
 }
+
+export const processAccountDeletionJobs =
+  async (): Promise<AccountDeletionProcessResult> => {
+    const pendingJobs = await db
+      .select({
+        id: accountDeletionJobs.id,
+        userId: accountDeletionJobs.userId,
+      })
+      .from(accountDeletionJobs)
+      .where(eq(accountDeletionJobs.status, 'pending'))
+
+    if (pendingJobs.length === 0) {
+      return {
+        processed: 0,
+        processedAt: new Date().toISOString(),
+      }
+    }
+
+    const now = new Date()
+    await db
+      .update(accountDeletionJobs)
+      .set({
+        status: 'processed',
+        processedAt: now,
+        updatedAt: now,
+      })
+      .where(
+        inArray(
+          accountDeletionJobs.id,
+          pendingJobs.map((job) => job.id)
+        )
+      )
+
+    return {
+      processed: pendingJobs.length,
+      processedAt: now.toISOString(),
+    }
+  }
