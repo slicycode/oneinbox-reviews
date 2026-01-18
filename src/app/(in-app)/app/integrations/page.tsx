@@ -1,8 +1,9 @@
 import { auth, signIn } from "@/auth";
 import { db } from "@/db";
-import { accounts } from "@/db/schema/user";
+import { accounts, users } from "@/db/schema/user";
 import { eq, and, sql } from "drizzle-orm";
 import { GoogleConnectionCard } from "@/features/integrations/google-connection-card";
+import { canDisconnectGoogle } from "@/lib/auth/google-disconnect";
 
 export default async function IntegrationsPage() {
   const session = await auth();
@@ -31,6 +32,27 @@ export default async function IntegrationsPage() {
     )
     .limit(1)
     .then((rows) => rows[0]);
+
+  const userAuthState = await db
+    .select({
+      password: users.password,
+    })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  const connectedProviders = await db
+    .select({
+      provider: accounts.provider,
+    })
+    .from(accounts)
+    .where(eq(accounts.userId, session.user.id));
+
+  const canDisconnect = canDisconnectGoogle({
+    hasPassword: Boolean(userAuthState?.password),
+    providers: connectedProviders.map((account) => account.provider),
+  });
 
   const isExpired = googleAccount?.isExpired ?? false;
   const rawStatus = googleAccount?.connectionStatus ?? "active";
@@ -62,6 +84,7 @@ export default async function IntegrationsPage() {
       </div>
       <GoogleConnectionCard
         isConnected={Boolean(googleAccount)}
+        canDisconnect={canDisconnect}
         accountId={googleAccount?.providerAccountId}
         email={session.user.email}
         status={googleAccount ? status : null}

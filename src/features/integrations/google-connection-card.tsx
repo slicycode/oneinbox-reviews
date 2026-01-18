@@ -3,6 +3,7 @@
 import * as React from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,6 +27,7 @@ import {
 
 interface GoogleConnectionCardProps {
   isConnected: boolean;
+  canDisconnect: boolean;
   accountId?: string;
   email?: string | null;
   status?: "active" | "expired" | "error" | null;
@@ -34,6 +36,7 @@ interface GoogleConnectionCardProps {
 
 export function GoogleConnectionCard({
   isConnected,
+  canDisconnect,
   accountId,
   email,
   status,
@@ -68,8 +71,12 @@ export function GoogleConnectionCard({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to disconnect Google");
+        const errorData = await response.json().catch(() => null);
+        const message =
+          errorData?.error?.message ||
+          errorData?.error ||
+          "Failed to disconnect Google";
+        throw new Error(message);
       }
 
       toast.success("Google disconnected");
@@ -85,6 +92,7 @@ export function GoogleConnectionCard({
   };
 
   const showReconnect = isConnected && status === "expired";
+  const showDisconnectGuard = isConnected && !canDisconnect;
 
   return (
     <Card>
@@ -126,6 +134,17 @@ export function GoogleConnectionCard({
             Not connected yet. Connect your Google account to continue.
           </p>
         )}
+        {showDisconnectGuard ? (
+          <div className="flex flex-col gap-2 rounded-md border border-muted px-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Google is your only sign-in method. Set a password before
+              disconnecting to keep access to your account.
+            </p>
+            <Button asChild variant="secondary" className="w-fit">
+              <Link href="/reset-password">Set a password</Link>
+            </Button>
+          </div>
+        ) : null}
         {!isConnected ? (
           <Button
             className="w-fit"
@@ -147,7 +166,10 @@ export function GoogleConnectionCard({
             ) : null}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isDisconnecting}>
+                <Button
+                  variant="destructive"
+                  disabled={isDisconnecting || showDisconnectGuard}
+                >
                   {isDisconnecting ? "Disconnecting..." : "Disconnect Google"}
                 </Button>
               </AlertDialogTrigger>

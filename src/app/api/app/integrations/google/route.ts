@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import withAuthRequired from '@/lib/auth/withAuthRequired'
 import { db } from '@/db'
-import { accounts } from '@/db/schema/user'
+import { accounts, users } from '@/db/schema/user'
 import { reviewSyncJobs } from '@/db/schema/review-sync-job'
 import { and, eq, inArray } from 'drizzle-orm'
+import { canDisconnectGoogle } from '@/lib/auth/google-disconnect'
 
 const revokeGoogleToken = async (token: string) => {
   try {
@@ -26,6 +27,39 @@ const revokeGoogleToken = async (token: string) => {
 export const DELETE = withAuthRequired(async (_req, context) => {
   const userId = context.session.user.id
   const now = new Date()
+
+  const userAuthState = await db
+    .select({ password: users.password })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+    .then((rows) => rows[0])
+
+  const linkedProviders = await db
+    .select({ provider: accounts.provider })
+    .from(accounts)
+    .where(eq(accounts.userId, userId))
+
+  const canDisconnect = canDisconnectGoogle({
+    hasPassword: Boolean(userAuthState?.password),
+    providers: linkedProviders.map((account) => account.provider),
+  })
+
+  if (!canDisconnect) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'google_disconnect_requires_password',
+          message:
+            'Set a password before disconnecting Google so you can still sign in.',
+          details: {
+            actionUrl: '/reset-password',
+          },
+        },
+      },
+      { status: 409 }
+    )
+  }
 
   const googleAccounts = await db
     .select({

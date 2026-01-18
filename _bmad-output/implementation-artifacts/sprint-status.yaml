@@ -54,11 +54,11 @@ development_status:
   2-1-connect-google-business-profile: done
   2-2-connection-status-last-auth-health: done
   2-3-re-authenticate-expired-connection: done
-  2-4-disconnect-platform: review
-  epic-2-retrospective: optional
+  2-4-disconnect-platform: done
+  epic-2-retrospective: done
 
-  epic-3: backlog
-  3-1-ingest-google-reviews-initial-sync: backlog
+  epic-3: in-progress
+  3-1-ingest-google-reviews-initial-sync: ready-for-dev
   3-2-sync-status-last-sync-time: backlog
   3-3-backfill-after-re-auth: backlog
   3-4-review-inbox-list-detail: backlog
