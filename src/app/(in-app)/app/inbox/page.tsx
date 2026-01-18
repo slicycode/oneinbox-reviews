@@ -2,10 +2,12 @@ import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
+import { alertSettings } from "@/db/schema/alert-settings";
 import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
 import { ReviewFilters } from "@/features/inbox/review-filters";
+import { EmailAlertsForm } from "@/features/alerts/email-alerts-form";
 import { appConfig } from "@/lib/config";
 import {
   reviewFiltersSchema,
@@ -104,6 +106,14 @@ export default async function InboxPage({
     ? syncRow.lastSuccessAt.toISOString()
     : "Never";
 
+  const alertSettingsRow = await db
+    .select({ emailAlertsEnabled: alertSettings.emailAlertsEnabled })
+    .from(alertSettings)
+    .where(eq(alertSettings.userId, session.user.id))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+  const emailAlertsEnabled = alertSettingsRow?.emailAlertsEnabled ?? false;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -120,6 +130,7 @@ export default async function InboxPage({
         <ReviewSyncButton />
       </div>
       <ReviewFilters defaultValues={filters} />
+      <EmailAlertsForm initialEnabled={emailAlertsEnabled} />
       <ReviewList reviews={reviewData} />
     </div>
   );

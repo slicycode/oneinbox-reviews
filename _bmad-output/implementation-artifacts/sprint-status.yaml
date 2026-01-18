@@ -65,17 +65,17 @@ development_status:
   3-5-filtering-search: done
   epic-3-retrospective: done
 
-  epic-4: in-progress
-  4-1-review-status-updates: review
-  4-2-compose-send-response: review
-  4-3-response-history: review
-  4-4-deep-link-platform-reply: review
-  4-5-draft-edit-delete: review
-  4-6-unified-response-status-audit-log: backlog
+  epic-4: done
+  4-1-review-status-updates: done
+  4-2-compose-send-response: done
+  4-3-response-history: done
+  4-4-deep-link-platform-reply: done
+  4-5-draft-edit-delete: done
+  4-6-unified-response-status-audit-log: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-email-alerts-new-reviews: backlog
+  epic-5: in-progress
+  5-1-email-alerts-new-reviews: review
   5-2-alert-thresholds-negative-reviews: backlog
   5-3-pause-resume-alerts: backlog
   5-4-sync-failure-stale-data-alerts: backlog

@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { reviewSyncJobs } from "@/db/schema/review-sync-job";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { accounts } from "@/db/schema/user";
+import { sendNewReviewAlert } from "@/lib/alerts/send-new-review-alert";
 import { and, eq } from "drizzle-orm";
 
 type ReviewSyncJob = {
@@ -132,13 +133,12 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
 
   let processed = 0;
   let inserted = 0;
-  const now = new Date();
-
   for (const job of pendingJobs) {
+    const jobStartedAt = new Date();
     processed += 1;
     await db
       .update(reviewSyncJobs)
-      .set({ status: "processing", updatedAt: now })
+      .set({ status: "processing", updatedAt: jobStartedAt })
       .where(eq(reviewSyncJobs.id, job.id));
 
     try {
@@ -148,6 +148,16 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
       }
 
       inserted += insertedCount;
+      if (insertedCount > 0) {
+        void sendNewReviewAlert({
+          userId: job.userId,
+          provider: job.provider,
+          insertedCount,
+          since: jobStartedAt,
+        }).catch((error) => {
+          console.error("Failed to send review alert:", error);
+        });
+      }
 
       const existingStatus = await db
         .select({
@@ -172,11 +182,15 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
             : "stale";
       const nextStatus = insertedCount > 0 ? "active" : normalizedStatus;
       const lastSuccessAt =
-        insertedCount > 0 ? now : existingStatus?.lastSuccessAt ?? null;
+        insertedCount > 0 ? jobStartedAt : existingStatus?.lastSuccessAt ?? null;
 
       await db
         .update(reviewSyncJobs)
-        .set({ status: "processed", processedAt: now, updatedAt: now })
+        .set({
+          status: "processed",
+          processedAt: jobStartedAt,
+          updatedAt: jobStartedAt,
+        })
         .where(eq(reviewSyncJobs.id, job.id));
 
       await upsertSyncStatus({
@@ -184,7 +198,7 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         provider: job.provider,
         status: nextStatus,
         lastSuccessAt,
-        lastAttemptAt: now,
+        lastAttemptAt: jobStartedAt,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -193,7 +207,7 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         .set({
           status: "error",
           error: message,
-          updatedAt: now,
+          updatedAt: jobStartedAt,
         })
         .where(eq(reviewSyncJobs.id, job.id));
 
@@ -201,7 +215,7 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         userId: job.userId,
         provider: job.provider,
         status: "failed",
-        lastAttemptAt: now,
+        lastAttemptAt: jobStartedAt,
         lastError: message,
       });
     }
