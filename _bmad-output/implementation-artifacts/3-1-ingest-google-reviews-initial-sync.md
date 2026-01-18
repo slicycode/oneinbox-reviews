@@ -1,6 +1,6 @@
 # Story 3.1: Ingest Google Reviews (Initial Sync)
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -18,20 +18,20 @@ so that they appear in my inbox.
 
 ## Tasks / Subtasks
 
-- [ ] Review review data model and ingestion requirements
-  - [ ] Identify where reviews should be stored and indexed.
-  - [ ] Confirm required fields and idempotency keys.
-- [ ] Implement ingestion job
-  - [ ] Create job under `src/lib/jobs` to fetch and store reviews.
-  - [ ] Use idempotent upsert logic for reviews.
-- [ ] Trigger initial sync
-  - [ ] Trigger job after successful connection.
-  - [ ] Record sync metadata (last sync time).
-- [ ] Surface in inbox
-  - [ ] Ensure reviews appear in inbox list UI.
-- [ ] Tests
+- [x] Review review data model and ingestion requirements
+  - [x] Identify where reviews should be stored and indexed.
+  - [x] Confirm required fields and idempotency keys.
+- [x] Implement ingestion job
+  - [x] Create job under `src/lib/jobs` to fetch and store reviews.
+  - [x] Use idempotent upsert logic for reviews.
+- [x] Trigger initial sync
+  - [x] Trigger job after successful connection.
+  - [x] Record sync metadata (last sync time).
+- [x] Surface in inbox
+  - [x] Ensure reviews appear in inbox list UI.
+- [x] Tests
   - [ ] Add co-located tests for ingestion and idempotency.
-  - [ ] If no test runner is configured, document manual checks in Dev Agent Record.
+  - [x] If no test runner is configured, document manual checks in Dev Agent Record.
 
 ## Dev Notes
 
@@ -55,3 +55,24 @@ so that they appear in my inbox.
 ### Agent Model Used
 
 gpt-5.2-codex
+
+### Debug Log References
+
+No automated test runner configured; manual checks performed.
+
+### Completion Notes List
+
+- Added reviews schema with idempotent provider review keys.
+- Enqueued initial review sync on first Google connection.
+- Implemented sync job and cron processor (no placeholder inserts).
+- Added inbox page to display ingested reviews.
+- Manual checks: connect Google, run sync, review appears in inbox.
+
+### File List
+
+- src/db/schema/reviews.ts
+- src/lib/jobs/reviews-sync.ts
+- src/app/api/cron/reviews-sync/route.ts
+- src/auth.ts
+- src/features/inbox/review-list.tsx
+- src/app/(in-app)/app/inbox/page.tsx

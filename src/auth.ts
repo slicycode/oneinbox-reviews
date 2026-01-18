@@ -13,6 +13,7 @@ import { appConfig } from './lib/config'
 import { decryptJson } from './lib/encryption/edge-jwt'
 import { and, eq } from 'drizzle-orm'
 import { enqueueReviewBackfill } from '@/lib/jobs/review-backfill'
+import { enqueueReviewSync } from '@/lib/jobs/reviews-sync'
 
 // Overrides default session type
 declare module 'next-auth' {
@@ -145,6 +146,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             .select({
               userId: accounts.userId,
               connectionStatus: accounts.connectionStatus,
+              providerAccountId: accounts.providerAccountId,
+              lastAuthAt: accounts.lastAuthAt,
             })
             .from(accounts)
             .where(
@@ -169,8 +172,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               )
             )
 
-          if (!isNewUser && existingAccount?.connectionStatus === 'expired') {
-            await enqueueReviewBackfill(existingAccount.userId, 'google')
+          if (existingAccount?.connectionStatus === 'expired') {
+            await enqueueReviewBackfill(
+              existingAccount.userId,
+              'google',
+              existingAccount.providerAccountId
+            )
+          }
+
+          if (isNewUser || !existingAccount?.lastAuthAt) {
+            await enqueueReviewSync(
+              existingAccount.userId,
+              'google',
+              'initial',
+              existingAccount.providerAccountId
+            )
           }
         } catch (error) {
           console.error('Failed to update Google connection status:', error)

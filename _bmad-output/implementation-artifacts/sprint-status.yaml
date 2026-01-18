@@ -58,7 +58,7 @@ development_status:
   epic-2-retrospective: done
 
   epic-3: in-progress
-  3-1-ingest-google-reviews-initial-sync: ready-for-dev
+  3-1-ingest-google-reviews-initial-sync: review
   3-2-sync-status-last-sync-time: backlog
   3-3-backfill-after-re-auth: backlog
   3-4-review-inbox-list-detail: backlog
