@@ -1,7 +1,8 @@
 import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
-import { and, eq } from "drizzle-orm";
+import { reviewResponses } from "@/db/schema/review-responses";
+import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import {
   Card,
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ReviewResponseForm } from "@/features/inbox/review-response-form";
 
 export default async function ReviewDetailPage({
   params,
@@ -28,6 +30,7 @@ export default async function ReviewDetailPage({
   const review = await db
     .select({
       id: reviews.id,
+      provider: reviews.provider,
       rating: reviews.rating,
       content: reviews.content,
       authorName: reviews.authorName,
@@ -40,6 +43,23 @@ export default async function ReviewDetailPage({
     .where(and(eq(reviews.id, id), eq(reviews.userId, session.user.id)))
     .limit(1)
     .then((rows) => rows[0]);
+
+  const responseRows = await db
+    .select({
+      id: reviewResponses.id,
+      status: reviewResponses.status,
+      responseText: reviewResponses.responseText,
+      createdAt: reviewResponses.createdAt,
+      sentAt: reviewResponses.sentAt,
+    })
+    .from(reviewResponses)
+    .where(
+      and(
+        eq(reviewResponses.reviewId, id),
+        eq(reviewResponses.userId, session.user.id)
+      )
+    )
+    .orderBy(desc(reviewResponses.createdAt));
 
   if (!review) {
     return (
@@ -62,6 +82,12 @@ export default async function ReviewDetailPage({
   }
 
   // Ownership check is handled in the query above.
+
+  const responseData = responseRows.map((row) => ({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    sentAt: row.sentAt ? row.sentAt.toISOString() : null,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,6 +144,7 @@ export default async function ReviewDetailPage({
           ) : null}
         </CardContent>
       </Card>
+      <ReviewResponseForm reviewId={review.id} initialResponses={responseData} />
     </div>
   );
 }
