@@ -9,6 +9,7 @@ import { SWRConfig } from "swr";
 import { fetcher } from "@/lib/swr/fetcher";
 import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -29,6 +30,7 @@ function Providers({ children }: { children: React.ReactNode }) {
 
             {children}
             <Analytics />
+            <SpeedInsights />
             <Toaster position="top-center" className="dark:hidden" richColors />
             <Toaster
               position="top-center"
