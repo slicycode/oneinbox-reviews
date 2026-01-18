@@ -28,6 +28,8 @@ export const reviewResponses = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     provider: text("provider").notNull(),
     responseText: text("response_text").notNull(),
+    authorName: text("author_name"),
+    authorEmail: text("author_email"),
     status: reviewResponseStatusEnum("status").default("pending").notNull(),
     providerResponseId: text("provider_response_id"),
     errorMessage: text("error_message"),

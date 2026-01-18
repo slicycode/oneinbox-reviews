@@ -4,6 +4,7 @@ import withAuthRequired from "@/lib/auth/withAuthRequired";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewResponses } from "@/db/schema/review-responses";
+import { users } from "@/db/schema/user";
 import { reviewResponseSchema } from "@/lib/validations/review-response.schema";
 
 const normalizeProviderStatus = (provider: string) => {
@@ -59,6 +60,13 @@ export const POST = withAuthRequired(async (req, context) => {
         return { notFound: true as const };
       }
 
+      const author = await tx
+        .select({ name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, context.session.user.id))
+        .limit(1)
+        .then((rows) => rows[0]);
+
       const initialStatus = normalizeProviderStatus(review.provider);
       const now = new Date();
 
@@ -69,6 +77,8 @@ export const POST = withAuthRequired(async (req, context) => {
           userId: context.session.user.id,
           provider: review.provider,
           responseText: parsed.data.response,
+          authorName: author?.name ?? null,
+          authorEmail: author?.email ?? null,
           status: initialStatus,
           sentAt: initialStatus === "sent" ? now : null,
         })
@@ -76,6 +86,8 @@ export const POST = withAuthRequired(async (req, context) => {
           id: reviewResponses.id,
           status: reviewResponses.status,
           responseText: reviewResponses.responseText,
+          authorName: reviewResponses.authorName,
+          authorEmail: reviewResponses.authorEmail,
           createdAt: reviewResponses.createdAt,
           sentAt: reviewResponses.sentAt,
         })

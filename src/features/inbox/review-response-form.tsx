@@ -19,6 +19,8 @@ type ReviewResponseItem = {
   id: string;
   status: "pending" | "sent" | "failed";
   responseText: string;
+  authorName: string | null;
+  authorEmail: string | null;
   createdAt: string;
   sentAt: string | null;
 };
@@ -112,6 +114,9 @@ export function ReviewResponseForm({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>Status: {statusLabel[item.status]}</span>
+                  <span>
+                    By {item.authorName || item.authorEmail || "Unknown"}
+                  </span>
                   <span>{new Date(item.createdAt).toLocaleString()}</span>
                 </div>
                 <p className="mt-2">{item.responseText}</p>

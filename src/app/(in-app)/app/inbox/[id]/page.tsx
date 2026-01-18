@@ -49,6 +49,8 @@ export default async function ReviewDetailPage({
       id: reviewResponses.id,
       status: reviewResponses.status,
       responseText: reviewResponses.responseText,
+      authorName: reviewResponses.authorName,
+      authorEmail: reviewResponses.authorEmail,
       createdAt: reviewResponses.createdAt,
       sentAt: reviewResponses.sentAt,
     })
