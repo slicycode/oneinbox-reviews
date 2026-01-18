@@ -32,6 +32,7 @@ export const reviews = pgTable(
     authorName: text("author_name"),
     authorUrl: text("author_url"),
     reviewUrl: text("review_url"),
+    replyUrl: text("reply_url"),
     locationName: text("location_name"),
     reviewCreatedAt: timestamp("review_created_at", { mode: "date" }).notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),

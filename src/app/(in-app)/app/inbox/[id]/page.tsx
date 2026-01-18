@@ -36,6 +36,7 @@ export default async function ReviewDetailPage({
       authorName: reviews.authorName,
       authorUrl: reviews.authorUrl,
       reviewUrl: reviews.reviewUrl,
+      replyUrl: reviews.replyUrl,
       locationName: reviews.locationName,
       reviewCreatedAt: reviews.reviewCreatedAt,
     })
@@ -142,6 +143,19 @@ export default async function ReviewDetailPage({
               >
                 View review
               </a>
+            </div>
+          ) : null}
+          {review.replyUrl && review.provider === "google" ? (
+            <div>
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={review.replyUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Reply on platform
+                </a>
+              </Button>
             </div>
           ) : null}
         </CardContent>
