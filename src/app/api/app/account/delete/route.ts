@@ -4,7 +4,8 @@ import { accountDeletionSchema } from '@/lib/validations/account-deletion.schema
 import { db } from '@/db'
 import { users } from '@/db/schema/user'
 import { eq } from 'drizzle-orm'
-import { enqueueAccountDeletion } from '@/lib/jobs/account-deletion'
+import { enqueueAccountDeletion, enqueuePolicyDeletion } from '@/lib/jobs/account-deletion'
+import { accounts } from '@/db/schema/user'
 
 const CONFIRMATION_TEXT = 'delete my account'
 
@@ -42,6 +43,20 @@ export const DELETE = withAuthRequired(async (req, context) => {
   }
 
   const job = await enqueueAccountDeletion(userId)
+  const providers = await db
+    .select({ provider: accounts.provider })
+    .from(accounts)
+    .where(eq(accounts.userId, userId))
+    .then((rows) => rows.map((row) => row.provider))
+
+  const uniqueProviders = Array.from(new Set(providers))
+  for (const provider of uniqueProviders) {
+    await enqueuePolicyDeletion({
+      userId,
+      provider,
+      reason: 'account_deletion',
+    })
+  }
 
   return NextResponse.json({
     success: true,

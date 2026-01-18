@@ -40,6 +40,16 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deletionJobs, setDeletionJobs] = useState<
+    {
+      id: string;
+      provider: string;
+      status: string;
+      requestedAt: string;
+      processedAt: string | null;
+      error: string | null;
+    }[]
+  >([]);
 
   const form = useForm<ProfileUpdateValues>({
     resolver: zodResolver(profileUpdateSchema),
@@ -59,6 +69,22 @@ export default function ProfilePage() {
       setAvatarUrl(user.image || "");
     }
   }, [user, form]);
+
+  React.useEffect(() => {
+    const fetchDeletionStatus = async () => {
+      try {
+        const response = await fetch("/api/app/data-deletion/status");
+        const result = await response.json();
+        if (response.ok && Array.isArray(result.jobs)) {
+          setDeletionJobs(result.jobs);
+        }
+      } catch (error) {
+        console.error("Failed to load deletion status:", error);
+      }
+    };
+
+    fetchDeletionStatus();
+  }, []);
 
   const handleAvatarUpload = async (fileUrls: string[]) => {
     if (fileUrls.length > 0) {
@@ -315,6 +341,45 @@ export default function ProfilePage() {
           >
             {isDeleting ? "Deleting..." : "Delete Account"}
           </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Deletion Status</CardTitle>
+          <CardDescription>
+            Track deletion requests triggered by platform policies.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 text-sm">
+          {deletionJobs.length === 0 ? (
+            <p className="text-muted-foreground">
+              No deletion requests have been recorded yet.
+            </p>
+          ) : (
+            deletionJobs.map((job) => (
+              <div
+                key={job.id}
+                className="flex flex-col gap-1 rounded-md border p-3"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{job.provider}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">{job.status}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Requested {new Date(job.requestedAt).toLocaleString()}
+                </div>
+                {job.processedAt ? (
+                  <div className="text-xs text-muted-foreground">
+                    Processed {new Date(job.processedAt).toLocaleString()}
+                  </div>
+                ) : null}
+                {job.error ? (
+                  <div className="text-xs text-destructive">{job.error}</div>
+                ) : null}
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,7 @@
 import { db } from '@/db'
 import { accountDeletionJobs } from '@/db/schema/account-deletion-job'
 import { eq, inArray } from 'drizzle-orm'
+import { dataDeletionJobs } from '@/db/schema/data-deletion-job'
 
 type AccountDeletionJob = {
   id: string
@@ -51,6 +52,53 @@ export const enqueueAccountDeletion = async (
   console.log(
     JSON.stringify({ level: 'info', event: payload.event, context: payload })
   )
+  return payload
+}
+
+export const enqueuePolicyDeletion = async (params: {
+  userId: string
+  provider: string
+  reason: string
+}) => {
+  const now = new Date()
+  const job = await db
+    .insert(dataDeletionJobs)
+    .values({
+      userId: params.userId,
+      provider: params.provider,
+      reason: params.reason,
+      status: 'pending',
+      requestedAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [dataDeletionJobs.userId, dataDeletionJobs.provider],
+      set: {
+        reason: params.reason,
+        status: 'pending',
+        requestedAt: now,
+        updatedAt: now,
+        error: null,
+      },
+    })
+    .returning()
+    .then((rows) => rows[0])
+
+  const payload = {
+    id: job.id,
+    userId: job.userId,
+    status: job.status,
+    requestedAt: job.requestedAt.toISOString(),
+  }
+
+  console.log(
+    JSON.stringify({
+      level: 'info',
+      event: 'data.deletion.requested',
+      context: payload,
+    })
+  )
+
   return payload
 }
 
