@@ -2,7 +2,7 @@ import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewResponses } from "@/db/schema/review-responses";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import Link from "next/link";
 import {
   Card,
@@ -59,10 +59,29 @@ export default async function ReviewDetailPage({
     .where(
       and(
         eq(reviewResponses.reviewId, id),
-        eq(reviewResponses.userId, session.user.id)
+        eq(reviewResponses.userId, session.user.id),
+        ne(reviewResponses.status, "draft")
       )
     )
     .orderBy(desc(reviewResponses.createdAt));
+
+  const draftRow = await db
+    .select({
+      id: reviewResponses.id,
+      responseText: reviewResponses.responseText,
+      updatedAt: reviewResponses.updatedAt,
+    })
+    .from(reviewResponses)
+    .where(
+      and(
+        eq(reviewResponses.reviewId, id),
+        eq(reviewResponses.userId, session.user.id),
+        eq(reviewResponses.status, "draft")
+      )
+    )
+    .orderBy(desc(reviewResponses.updatedAt))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
 
   if (!review) {
     return (
@@ -88,9 +107,16 @@ export default async function ReviewDetailPage({
 
   const responseData = responseRows.map((row) => ({
     ...row,
+    status: row.status as "pending" | "sent" | "failed",
     createdAt: row.createdAt.toISOString(),
     sentAt: row.sentAt ? row.sentAt.toISOString() : null,
   }));
+  const draftData = draftRow
+    ? {
+      ...draftRow,
+      updatedAt: draftRow.updatedAt.toISOString(),
+    }
+    : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -160,7 +186,11 @@ export default async function ReviewDetailPage({
           ) : null}
         </CardContent>
       </Card>
-      <ReviewResponseForm reviewId={review.id} initialResponses={responseData} />
+      <ReviewResponseForm
+        reviewId={review.id}
+        initialResponses={responseData}
+        initialDraft={draftData}
+      />
     </div>
   );
 }

@@ -1,10 +1,4 @@
-import {
-  index,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { reviews } from "./reviews";
 import { users } from "./user";
 
@@ -12,6 +6,7 @@ export const reviewResponseStatusEnum = pgEnum("review_response_status", [
   "pending",
   "sent",
   "failed",
+  "draft",
 ]);
 
 export const reviewResponses = pgTable(

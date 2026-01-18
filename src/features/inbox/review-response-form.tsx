@@ -25,9 +25,16 @@ type ReviewResponseItem = {
   sentAt: string | null;
 };
 
+type ReviewDraftItem = {
+  id: string;
+  responseText: string;
+  updatedAt: string;
+};
+
 interface ReviewResponseFormProps {
   reviewId: string;
   initialResponses: ReviewResponseItem[];
+  initialDraft: ReviewDraftItem | null;
 }
 
 const statusLabel: Record<ReviewResponseItem["status"], string> = {
@@ -39,13 +46,18 @@ const statusLabel: Record<ReviewResponseItem["status"], string> = {
 export function ReviewResponseForm({
   reviewId,
   initialResponses,
+  initialDraft,
 }: ReviewResponseFormProps) {
   const [responses, setResponses] = React.useState(initialResponses);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [draft, setDraft] = React.useState<ReviewDraftItem | null>(
+    initialDraft
+  );
+  const [isDraftSaving, setIsDraftSaving] = React.useState(false);
 
   const form = useForm<ReviewResponseFormValues>({
     resolver: zodResolver(reviewResponseSchema),
-    defaultValues: { response: "" },
+    defaultValues: { response: initialDraft?.responseText ?? "" },
   });
 
   const onSubmit = async (values: ReviewResponseFormValues) => {
@@ -64,11 +76,61 @@ export function ReviewResponseForm({
 
       const data: { response: ReviewResponseItem } = await response.json();
       setResponses((prev) => [data.response, ...prev]);
+      if (draft) {
+        await deleteDraft();
+      }
       form.reset();
     } catch (error) {
       console.error("Failed to send response", error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    const values = form.getValues();
+    if (!values.response.trim()) {
+      return;
+    }
+
+    setIsDraftSaving(true);
+    try {
+      const response = await fetch(`/api/app/reviews/${reviewId}/draft`, {
+        method: draft ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to save draft", await response.text());
+        return;
+      }
+
+      const data: { draft: ReviewDraftItem } = await response.json();
+      setDraft(data.draft);
+    } catch (error) {
+      console.error("Failed to save draft", error);
+    } finally {
+      setIsDraftSaving(false);
+    }
+  };
+
+  const deleteDraft = async () => {
+    if (!draft) return;
+    try {
+      const response = await fetch(`/api/app/reviews/${reviewId}/draft`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to delete draft", await response.text());
+        return;
+      }
+
+      setDraft(null);
+      form.reset({ response: "" });
+    } catch (error) {
+      console.error("Failed to delete draft", error);
     }
   };
 
@@ -99,8 +161,26 @@ export function ReviewResponseForm({
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Sending..." : "Send response"}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={saveDraft}
+              disabled={isDraftSaving}
+            >
+              {isDraftSaving ? "Saving..." : draft ? "Update draft" : "Save draft"}
+            </Button>
+            {draft ? (
+              <Button type="button" variant="ghost" onClick={deleteDraft}>
+                Delete draft
+              </Button>
+            ) : null}
           </div>
         </form>
+        {draft ? (
+          <p className="text-xs text-muted-foreground">
+            Draft last saved {new Date(draft.updatedAt).toLocaleString()}
+          </p>
+        ) : null}
         {responses.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No responses have been sent yet.
