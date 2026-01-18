@@ -10,6 +10,7 @@ export const GET = withAuthRequired(async (_req, context) => {
     .select({
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+      alertsPaused: alertSettings.alertsPaused,
     })
     .from(alertSettings)
     .where(eq(alertSettings.userId, context.session.user.id))
@@ -19,6 +20,7 @@ export const GET = withAuthRequired(async (_req, context) => {
   return NextResponse.json({
     emailAlertsEnabled: settings?.emailAlertsEnabled ?? false,
     negativeReviewThreshold: settings?.negativeReviewThreshold ?? 2,
+    alertsPaused: settings?.alertsPaused ?? false,
   });
 });
 
@@ -45,6 +47,7 @@ export const PUT = withAuthRequired(async (req, context) => {
       userId: context.session.user.id,
       emailAlertsEnabled: parsed.data.emailAlertsEnabled,
       negativeReviewThreshold: parsed.data.negativeReviewThreshold,
+      alertsPaused: parsed.data.alertsPaused,
       createdAt: now,
       updatedAt: now,
     })
@@ -53,17 +56,20 @@ export const PUT = withAuthRequired(async (req, context) => {
       set: {
         emailAlertsEnabled: parsed.data.emailAlertsEnabled,
         negativeReviewThreshold: parsed.data.negativeReviewThreshold,
+        alertsPaused: parsed.data.alertsPaused,
         updatedAt: now,
       },
     })
     .returning({
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+      alertsPaused: alertSettings.alertsPaused,
     })
     .then((rows) => rows[0]);
 
   return NextResponse.json({
     emailAlertsEnabled: settings.emailAlertsEnabled,
     negativeReviewThreshold: settings.negativeReviewThreshold,
+    alertsPaused: settings.alertsPaused,
   });
 });

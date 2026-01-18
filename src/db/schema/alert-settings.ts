@@ -22,6 +22,7 @@ export const alertSettings = pgTable(
     negativeReviewThreshold: integer("negative_review_threshold")
       .default(2)
       .notNull(),
+    alertsPaused: boolean("alerts_paused").default(false).notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },

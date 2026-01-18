@@ -110,6 +110,7 @@ export default async function InboxPage({
     .select({
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+      alertsPaused: alertSettings.alertsPaused,
     })
     .from(alertSettings)
     .where(eq(alertSettings.userId, session.user.id))
@@ -117,6 +118,7 @@ export default async function InboxPage({
     .then((rows) => rows[0] ?? null);
   const emailAlertsEnabled = alertSettingsRow?.emailAlertsEnabled ?? false;
   const negativeReviewThreshold = alertSettingsRow?.negativeReviewThreshold ?? 2;
+  const alertsPaused = alertSettingsRow?.alertsPaused ?? false;
 
   return (
     <div className="flex flex-col gap-6">
@@ -137,6 +139,7 @@ export default async function InboxPage({
       <EmailAlertsForm
         initialEnabled={emailAlertsEnabled}
         initialThreshold={negativeReviewThreshold}
+        initialPaused={alertsPaused}
       />
       <ReviewList reviews={reviewData} />
     </div>

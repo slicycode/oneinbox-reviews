@@ -25,13 +25,14 @@ export const sendNewReviewAlert = async (params: {
     .select({
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
+      alertsPaused: alertSettings.alertsPaused,
     })
     .from(alertSettings)
     .where(eq(alertSettings.userId, params.userId))
     .limit(1)
     .then((rows) => rows[0]);
 
-  if (!settings?.emailAlertsEnabled) {
+  if (!settings?.emailAlertsEnabled || settings.alertsPaused) {
     return;
   }
 

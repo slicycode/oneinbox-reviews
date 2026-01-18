@@ -21,16 +21,19 @@ import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
 type AlertSettingsFormValues = {
   emailAlertsEnabled: boolean;
   negativeReviewThreshold: number;
+  alertsPaused: boolean;
 };
 
 interface EmailAlertsFormProps {
   initialEnabled: boolean;
   initialThreshold: number;
+  initialPaused: boolean;
 }
 
 export function EmailAlertsForm({
   initialEnabled,
   initialThreshold,
+  initialPaused,
 }: EmailAlertsFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -39,6 +42,7 @@ export function EmailAlertsForm({
     defaultValues: {
       emailAlertsEnabled: initialEnabled,
       negativeReviewThreshold: initialThreshold,
+      alertsPaused: initialPaused,
     },
   });
 
@@ -46,8 +50,9 @@ export function EmailAlertsForm({
     form.reset({
       emailAlertsEnabled: initialEnabled,
       negativeReviewThreshold: initialThreshold,
+      alertsPaused: initialPaused,
     });
-  }, [form, initialEnabled, initialThreshold]);
+  }, [form, initialEnabled, initialThreshold, initialPaused]);
 
   const onSubmit = async (values: AlertSettingsFormValues) => {
     setIsSubmitting(true);
@@ -69,6 +74,7 @@ export function EmailAlertsForm({
       form.reset({
         emailAlertsEnabled: result.emailAlertsEnabled,
         negativeReviewThreshold: result.negativeReviewThreshold,
+        alertsPaused: result.alertsPaused,
       });
     } catch (error) {
       console.error("Alert settings update failed:", error);
@@ -100,6 +106,26 @@ export function EmailAlertsForm({
                 <FormLabel>Email alerts for new reviews</FormLabel>
                 <FormDescription>
                   Receive an email whenever new reviews are ingested.
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="alertsPaused"
+          render={({ field }) => (
+            <FormItem className="flex items-start gap-3 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="flex flex-col gap-1 leading-none">
+                <FormLabel>Pause alerts</FormLabel>
+                <FormDescription>
+                  Temporarily stop sending any alert emails.
                 </FormDescription>
               </div>
             </FormItem>
