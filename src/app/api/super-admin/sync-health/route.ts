@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import withSuperAdminAuthRequired from "@/lib/auth/withSuperAdminAuthRequired";
 import { db } from "@/db";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { users } from "@/db/schema/user";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import withSuperAdminAuthRequired from "@/lib/auth/withSuperAdminAuthRequired";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 export const GET = withSuperAdminAuthRequired(async (req) => {
   try {
@@ -16,13 +16,13 @@ export const GET = withSuperAdminAuthRequired(async (req) => {
     if (search) {
       const term = `%${search}%`;
       conditions.push(
-        or(ilike(users.email, term), ilike(users.name, term))
+        sql`${users.email} ILIKE ${term} OR ${users.name} ILIKE ${term}`
       );
     }
-    if (provider) {
+    if (provider && provider !== "all") {
       conditions.push(eq(reviewSyncStatus.provider, provider));
     }
-    if (status) {
+    if (status && status !== "all") {
       conditions.push(eq(reviewSyncStatus.status, status));
     }
 

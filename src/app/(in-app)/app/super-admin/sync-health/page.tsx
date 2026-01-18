@@ -1,8 +1,4 @@
 import { auth, signIn } from "@/auth";
-import { db } from "@/db";
-import { reviewSyncStatus } from "@/db/schema/review-sync-status";
-import { users } from "@/db/schema/user";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { SyncHealthFilters } from "@/features/support/sync-health-filters";
 import { SyncHealthTable } from "@/features/support/sync-health-table";
 
@@ -39,40 +35,19 @@ export default async function SyncHealthPage({
     typeof rawParams.provider === "string" ? rawParams.provider : "";
   const status = typeof rawParams.status === "string" ? rawParams.status : "";
 
-  const conditions = [sql`1=1`];
-  if (search.trim()) {
-    const term = `%${search.trim()}%`;
-    conditions.push(or(ilike(users.email, term), ilike(users.name, term)));
-  }
-  if (provider && provider !== "all") {
-    conditions.push(eq(reviewSyncStatus.provider, provider));
-  }
-  if (status && status !== "all") {
-    conditions.push(eq(reviewSyncStatus.status, status));
-  }
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (provider && provider !== "all") params.set("provider", provider);
+  if (status && status !== "all") params.set("status", status);
 
-  const rows = await db
-    .select({
-      userId: reviewSyncStatus.userId,
-      provider: reviewSyncStatus.provider,
-      status: reviewSyncStatus.status,
-      lastSuccessAt: reviewSyncStatus.lastSuccessAt,
-      lastAttemptAt: reviewSyncStatus.lastAttemptAt,
-      lastError: reviewSyncStatus.lastError,
-      email: users.email,
-      name: users.name,
-    })
-    .from(reviewSyncStatus)
-    .leftJoin(users, eq(users.id, reviewSyncStatus.userId))
-    .where(and(...conditions))
-    .orderBy(desc(reviewSyncStatus.updatedAt))
-    .limit(100);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const response = await fetch(
+    `${baseUrl}/api/super-admin/sync-health?${params.toString()}`,
+    { cache: "no-store" }
+  );
 
-  const data = rows.map((row) => ({
-    ...row,
-    lastSuccessAt: row.lastSuccessAt?.toISOString() ?? null,
-    lastAttemptAt: row.lastAttemptAt?.toISOString() ?? null,
-  }));
+  const result = await response.json();
+  const data = Array.isArray(result.rows) ? result.rows : [];
 
   return (
     <div className="flex flex-col gap-6">

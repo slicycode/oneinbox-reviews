@@ -6,15 +6,15 @@ Status: review
 
 ## Story
 
-As a support agent,
+As a super admin,
 I want to view sync health for customer accounts,
 so that I can diagnose issues quickly.
 
 ## Acceptance Criteria
 
-1. Support can view sync status per account and provider.
+1. Super admins can view sync status per account and provider.
 2. View includes last success, last attempt, and error info.
-3. Access is restricted to support/admin roles.
+3. Access is restricted to super admins.
 
 ## Tasks / Subtasks
 
@@ -26,7 +26,7 @@ so that I can diagnose issues quickly.
   - [x] Add admin/support page to list sync health entries.
   - [x] Include search/filter by account/provider.
 - [x] Access control
-  - [x] Enforce support/admin role access.
+  - [x] Enforce super admin access.
 - [x] Tests
   - [ ] Add co-located tests for access control and data shape.
   - [x] If no test runner is configured, document manual checks in Dev Agent Record.
