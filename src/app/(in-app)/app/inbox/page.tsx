@@ -58,6 +58,7 @@ export default async function InboxPage({
   const reviewRows = await db
     .select({
       id: reviews.id,
+      status: reviews.status,
       rating: reviews.rating,
       content: reviews.content,
       authorName: reviews.authorName,
