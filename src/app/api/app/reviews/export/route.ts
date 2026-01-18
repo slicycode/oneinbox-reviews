@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import withAuthRequired from "@/lib/auth/withAuthRequired";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
+import { reviewExports } from "@/db/schema/review-exports";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { reviewFiltersSchema } from "@/lib/validations/review-filters.schema";
 
@@ -22,6 +23,7 @@ const escapeCsv = (value: string) => {
 
 export const GET = withAuthRequired(async (req, context) => {
   const { searchParams } = new URL(req.url);
+  const queryParams = searchParams.toString();
   const parsedFilters = reviewFiltersSchema.safeParse({
     ratingMin: searchParams.get("rating_min"),
     ratingMax: searchParams.get("rating_max"),
@@ -92,6 +94,14 @@ export const GET = withAuthRequired(async (req, context) => {
 
   const csv = lines.join("\n");
   const filename = `reviews-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  await db.insert(reviewExports).values({
+    userId: context.session.user.id,
+    status: "completed",
+    queryParams: queryParams.length > 0 ? queryParams : null,
+    rowCount: rows.length,
+    completedAt: new Date(),
+  });
 
   return new NextResponse(csv, {
     status: 200,

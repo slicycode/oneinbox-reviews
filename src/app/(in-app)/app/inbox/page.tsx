@@ -1,6 +1,7 @@
 import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
+import { reviewExports } from "@/db/schema/review-exports";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
 import { ReviewFilters } from "@/features/inbox/review-filters";
+import { ExportHistory } from "@/features/inbox/export-history";
 import { EmailAlertsForm } from "@/features/alerts/email-alerts-form";
 import { appConfig } from "@/lib/config";
 import {
@@ -92,6 +94,26 @@ export default async function InboxPage({
     reviewCreatedAt: row.reviewCreatedAt.toISOString(),
   }));
 
+  const exportRows = await db
+    .select({
+      id: reviewExports.id,
+      status: reviewExports.status,
+      rowCount: reviewExports.rowCount,
+      queryParams: reviewExports.queryParams,
+      createdAt: reviewExports.createdAt,
+      completedAt: reviewExports.completedAt,
+    })
+    .from(reviewExports)
+    .where(eq(reviewExports.userId, session.user.id))
+    .orderBy(desc(reviewExports.createdAt))
+    .limit(5);
+
+  const exportHistory = exportRows.map((row) => ({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    completedAt: row.completedAt ? row.completedAt.toISOString() : null,
+  }));
+
   const syncRow = await db
     .select({
       status: reviewSyncStatus.status,
@@ -164,6 +186,7 @@ export default async function InboxPage({
         initialThreshold={negativeReviewThreshold}
         initialPaused={alertsPaused}
       />
+      <ExportHistory items={exportHistory} />
       <ReviewList reviews={reviewData} />
     </div>
   );

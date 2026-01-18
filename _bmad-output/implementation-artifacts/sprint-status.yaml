@@ -84,7 +84,7 @@ development_status:
   5-7-data-deletion-policy-handling-fr36: done
   epic-5-retrospective: optional
 
-  epic-6: in-progress
-  6-1-export-reviews-to-csv: review
-  6-2-export-status-history-optional: backlog
-  epic-6-retrospective: optional
+  epic-6: done
+  6-1-export-reviews-to-csv: done
+  6-2-export-status-history-optional: done
+  epic-6-retrospective: done
