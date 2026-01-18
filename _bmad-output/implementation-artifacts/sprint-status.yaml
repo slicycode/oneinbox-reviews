@@ -57,13 +57,13 @@ development_status:
   2-4-disconnect-platform: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-ingest-google-reviews-initial-sync: done
   3-2-sync-status-last-sync-time: done
   3-3-backfill-after-re-auth: done
-  3-4-review-inbox-list-detail: review
-  3-5-filtering-search: backlog
-  epic-3-retrospective: optional
+  3-4-review-inbox-list-detail: done
+  3-5-filtering-search: done
+  epic-3-retrospective: done
 
   epic-4: backlog
   4-1-review-status-updates: backlog

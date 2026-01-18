@@ -2,7 +2,17 @@
 
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, MotionProps } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ForwardRefExoticComponent,
+  type MouseEventHandler,
+  type JSX,
+  type RefAttributes,
+  type ReactNode,
+} from "react";
 
 type CharacterSet = string[] | readonly string[];
 
@@ -27,6 +37,12 @@ interface HyperTextProps extends MotionProps {
   characterSet?: CharacterSet;
 }
 
+type MotionComponentProps = MotionProps & {
+  children?: ReactNode;
+  className?: string;
+  onMouseEnter?: MouseEventHandler<HTMLElement>;
+};
+
 const DEFAULT_CHARACTER_SET = Object.freeze(
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
 ) as readonly string[];
@@ -44,8 +60,12 @@ export default function HyperText({
   characterSet = DEFAULT_CHARACTER_SET,
   ...props
 }: HyperTextProps) {
-  const MotionComponent =
-    motion[Component as keyof typeof motion] || motion.div;
+  const MotionComponent = useMemo(
+    () => motion.create(Component as string),
+    [Component],
+  ) as ForwardRefExoticComponent<
+    MotionComponentProps & RefAttributes<HTMLElement>
+  >;
 
   const [displayText, setDisplayText] = useState<string[]>(() =>
     children.split(""),

@@ -2,16 +2,57 @@ import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
-import { and, eq, desc, sql } from "drizzle-orm";
+import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
+import { ReviewFilters } from "@/features/inbox/review-filters";
 import { appConfig } from "@/lib/config";
+import {
+  reviewFiltersSchema,
+  type ReviewFiltersInput,
+} from "@/lib/validations/review-filters.schema";
 
-export default async function InboxPage() {
+export default async function InboxPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await auth();
 
   if (!session?.user?.id) {
     return signIn();
+  }
+
+  const rawParams = await searchParams;
+  const parsedFilters = reviewFiltersSchema.safeParse({
+    ratingMin: rawParams.rating_min,
+    ratingMax: rawParams.rating_max,
+    dateFrom: rawParams.date_from,
+    dateTo: rawParams.date_to,
+    query: rawParams.q,
+  });
+  const filters: ReviewFiltersInput = parsedFilters.success
+    ? parsedFilters.data
+    : {};
+
+  const conditions = [eq(reviews.userId, session.user.id)];
+  if (filters.ratingMin !== undefined) {
+    conditions.push(gte(reviews.rating, filters.ratingMin));
+  }
+  if (filters.ratingMax !== undefined) {
+    conditions.push(lte(reviews.rating, filters.ratingMax));
+  }
+  if (filters.dateFrom) {
+    conditions.push(gte(reviews.reviewCreatedAt, filters.dateFrom));
+  }
+  if (filters.dateTo) {
+    conditions.push(lte(reviews.reviewCreatedAt, filters.dateTo));
+  }
+  if (filters.query) {
+    const term = `%${filters.query}%`;
+    conditions.push(
+      sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`
+    );
   }
 
   const reviewRows = await db
@@ -23,7 +64,7 @@ export default async function InboxPage() {
       reviewCreatedAt: reviews.reviewCreatedAt,
     })
     .from(reviews)
-    .where(eq(reviews.userId, session.user.id))
+    .where(and(...conditions))
     .orderBy(desc(reviews.reviewCreatedAt))
     .limit(50);
 
@@ -77,6 +118,7 @@ export default async function InboxPage() {
         </div>
         <ReviewSyncButton />
       </div>
+      <ReviewFilters defaultValues={filters} />
       <ReviewList reviews={reviewData} />
     </div>
   );
