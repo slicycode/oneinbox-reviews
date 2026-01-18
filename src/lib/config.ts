@@ -35,4 +35,7 @@ export const appConfig: AppConfigPublic = {
     senderName: 'Indie Kit',
     senderEmail: 'ssent.hq@gmail.com',
   },
+  sync: {
+    staleHours: 24,
+  },
 }

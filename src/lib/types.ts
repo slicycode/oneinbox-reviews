@@ -28,4 +28,7 @@ export interface AppConfigPublic {
     senderName: string;
     senderEmail: string;
   };
+  sync: {
+    staleHours: number;
+  };
 }

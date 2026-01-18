@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { reviewSyncJobs } from "@/db/schema/review-sync-job";
+import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { accounts } from "@/db/schema/user";
 import { and, eq } from "drizzle-orm";
 
@@ -78,6 +79,38 @@ const ingestGoogleReviews = async (userId: string) => {
   return 0;
 };
 
+const upsertSyncStatus = async (params: {
+  userId: string;
+  provider: string;
+  status: "active" | "failed" | "stale";
+  lastSuccessAt?: Date | null;
+  lastAttemptAt: Date;
+  lastError?: string | null;
+}) => {
+  const now = params.lastAttemptAt;
+  await db
+    .insert(reviewSyncStatus)
+    .values({
+      userId: params.userId,
+      provider: params.provider,
+      status: params.status,
+      lastSuccessAt: params.lastSuccessAt ?? null,
+      lastAttemptAt: params.lastAttemptAt,
+      lastError: params.lastError ?? null,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [reviewSyncStatus.userId, reviewSyncStatus.provider],
+      set: {
+        status: params.status,
+        lastSuccessAt: params.lastSuccessAt ?? null,
+        lastAttemptAt: params.lastAttemptAt,
+        lastError: params.lastError ?? null,
+        updatedAt: now,
+      },
+    });
+};
+
 export const processReviewSyncJobs = async (options?: { userId?: string }) => {
   const whereClause = options?.userId
     ? and(
@@ -116,19 +149,61 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
 
       inserted += insertedCount;
 
+      const existingStatus = await db
+        .select({
+          status: reviewSyncStatus.status,
+          lastSuccessAt: reviewSyncStatus.lastSuccessAt,
+        })
+        .from(reviewSyncStatus)
+        .where(
+          and(
+            eq(reviewSyncStatus.userId, job.userId),
+            eq(reviewSyncStatus.provider, job.provider)
+          )
+        )
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      const normalizedStatus =
+        existingStatus?.status === "failed"
+          ? "failed"
+          : existingStatus?.status === "active"
+            ? "active"
+            : "stale";
+      const nextStatus = insertedCount > 0 ? "active" : normalizedStatus;
+      const lastSuccessAt =
+        insertedCount > 0 ? now : existingStatus?.lastSuccessAt ?? null;
+
       await db
         .update(reviewSyncJobs)
         .set({ status: "processed", processedAt: now, updatedAt: now })
         .where(eq(reviewSyncJobs.id, job.id));
+
+      await upsertSyncStatus({
+        userId: job.userId,
+        provider: job.provider,
+        status: nextStatus,
+        lastSuccessAt,
+        lastAttemptAt: now,
+      });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       await db
         .update(reviewSyncJobs)
         .set({
           status: "error",
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: message,
           updatedAt: now,
         })
         .where(eq(reviewSyncJobs.id, job.id));
+
+      await upsertSyncStatus({
+        userId: job.userId,
+        provider: job.provider,
+        status: "failed",
+        lastAttemptAt: now,
+        lastError: message,
+      });
     }
   }
 
