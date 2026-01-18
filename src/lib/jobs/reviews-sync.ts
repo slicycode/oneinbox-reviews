@@ -200,6 +200,7 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         lastSuccessAt,
         lastAttemptAt: jobStartedAt,
       });
+
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       await db
@@ -218,6 +219,7 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         lastAttemptAt: jobStartedAt,
         lastError: message,
       });
+
     }
   }
 

@@ -21,6 +21,8 @@ export const reviewSyncStatus = pgTable(
     lastSuccessAt: timestamp("last_success_at", { mode: "date" }),
     lastAttemptAt: timestamp("last_attempt_at", { mode: "date" }),
     lastError: text("last_error"),
+    lastAlertAt: timestamp("last_alert_at", { mode: "date" }),
+    lastAlertStatus: text("last_alert_status"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },
