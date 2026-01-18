@@ -79,7 +79,7 @@ development_status:
   5-2-alert-thresholds-negative-reviews: review
   5-3-pause-resume-alerts: review
   5-4-sync-failure-stale-data-alerts: review
-  5-5-support-sync-health-view: backlog
+  5-5-support-sync-health-view: review
   5-6-manual-re-sync-trigger: backlog
   5-7-data-deletion-policy-handling-fr36: backlog
   epic-5-retrospective: optional
