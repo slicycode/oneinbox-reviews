@@ -4,6 +4,7 @@ import { reviews } from "@/db/schema/reviews";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
+import { Button } from "@/components/ui/button";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
 import { ReviewFilters } from "@/features/inbox/review-filters";
@@ -36,6 +37,21 @@ export default async function InboxPage({
   const filters: ReviewFiltersInput = parsedFilters.success
     ? parsedFilters.data
     : {};
+
+  const exportParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(rawParams)) {
+    if (value === undefined) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((entry) => exportParams.append(key, entry));
+    } else {
+      exportParams.append(key, value);
+    }
+  }
+  const exportHref = exportParams.toString()
+    ? `/api/app/reviews/export?${exportParams.toString()}`
+    : "/api/app/reviews/export";
 
   const conditions = [eq(reviews.userId, session.user.id)];
   if (filters.ratingMin !== undefined) {
@@ -133,7 +149,14 @@ export default async function InboxPage({
             <span>Last sync: {lastSyncLabel}</span>
           </div>
         </div>
-        <ReviewSyncButton />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a href={exportHref} download>
+              Export CSV
+            </a>
+          </Button>
+          <ReviewSyncButton />
+        </div>
       </div>
       <ReviewFilters defaultValues={filters} />
       <EmailAlertsForm

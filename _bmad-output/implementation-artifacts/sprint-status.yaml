@@ -74,17 +74,17 @@ development_status:
   4-6-unified-response-status-audit-log: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
-  5-1-email-alerts-new-reviews: review
-  5-2-alert-thresholds-negative-reviews: review
-  5-3-pause-resume-alerts: review
-  5-4-sync-failure-stale-data-alerts: review
-  5-5-support-sync-health-view: review
-  5-6-manual-re-sync-trigger: review
-  5-7-data-deletion-policy-handling-fr36: review
+  epic-5: done
+  5-1-email-alerts-new-reviews: done
+  5-2-alert-thresholds-negative-reviews: done
+  5-3-pause-resume-alerts: done
+  5-4-sync-failure-stale-data-alerts: done
+  5-5-support-sync-health-view: done
+  5-6-manual-re-sync-trigger: done
+  5-7-data-deletion-policy-handling-fr36: done
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-export-reviews-to-csv: backlog
+  epic-6: in-progress
+  6-1-export-reviews-to-csv: review
   6-2-export-status-history-optional: backlog
   epic-6-retrospective: optional
