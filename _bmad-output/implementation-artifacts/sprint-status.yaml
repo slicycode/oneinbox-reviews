@@ -80,7 +80,7 @@ development_status:
   5-3-pause-resume-alerts: review
   5-4-sync-failure-stale-data-alerts: review
   5-5-support-sync-health-view: review
-  5-6-manual-re-sync-trigger: ready-for-dev
+  5-6-manual-re-sync-trigger: review
   5-7-data-deletion-policy-handling-fr36: review
   epic-5-retrospective: optional
 

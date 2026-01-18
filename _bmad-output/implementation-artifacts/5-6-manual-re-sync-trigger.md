@@ -1,6 +1,6 @@
 # Story 5.6: Manual Re-sync Trigger
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -18,17 +18,17 @@ so that I can recover from sync issues.
 
 ## Tasks / Subtasks
 
-- [ ] Define manual trigger flow
-  - [ ] Decide how support selects account/provider.
-- [ ] Implement API handling
-  - [ ] Add secured endpoint to enqueue manual sync.
-- [ ] Update UI
-  - [ ] Add trigger action in support sync health view.
-- [ ] Access control
-  - [ ] Enforce super admin access.
-- [ ] Tests
+- [x] Define manual trigger flow
+  - [x] Decide how support selects account/provider.
+- [x] Implement API handling
+  - [x] Add secured endpoint to enqueue manual sync.
+- [x] Update UI
+  - [x] Add trigger action in support sync health view.
+- [x] Access control
+  - [x] Enforce super admin access.
+- [x] Tests
   - [ ] Add co-located tests for manual trigger.
-  - [ ] If no test runner is configured, document manual checks in Dev Agent Record.
+  - [x] If no test runner is configured, document manual checks in Dev Agent Record.
 
 ## Dev Notes
 
@@ -54,12 +54,16 @@ gpt-5.2-codex
 
 ### Debug Log References
 
-TBD
+No automated test runner configured; manual checks performed.
 
 ### Completion Notes List
 
-- TBD
+- Added super admin endpoint to trigger manual sync jobs.
+- Support table now exposes a trigger action per provider.
+- Manual checks: trigger queued job for provider.
 
 ### File List
 
-- TBD
+- src/app/api/super-admin/sync-health/trigger/route.ts
+- src/lib/validations/manual-sync.schema.ts
+- src/features/support/sync-health-table.tsx
