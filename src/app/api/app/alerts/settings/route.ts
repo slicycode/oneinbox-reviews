@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import withAuthRequired from "@/lib/auth/withAuthRequired";
 import { db } from "@/db";
 import { alertSettings } from "@/db/schema/alert-settings";
+import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
 
 export const GET = withAuthRequired(async (_req, context) => {
@@ -19,7 +20,8 @@ export const GET = withAuthRequired(async (_req, context) => {
 
   return NextResponse.json({
     emailAlertsEnabled: settings?.emailAlertsEnabled ?? false,
-    negativeReviewThreshold: settings?.negativeReviewThreshold ?? 2,
+    negativeReviewThreshold:
+      settings?.negativeReviewThreshold ?? DEFAULT_NEGATIVE_REVIEW_THRESHOLD,
     alertsPaused: settings?.alertsPaused ?? false,
   });
 });

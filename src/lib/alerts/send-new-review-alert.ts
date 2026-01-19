@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { reviews } from "@/db/schema/reviews";
 import { users } from "@/db/schema/user";
+import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import { appConfig } from "@/lib/config";
 import sendMail from "@/lib/email/sendMail";
 import NewReviewAlert from "@/emails/NewReviewAlert";
@@ -48,7 +49,8 @@ export const sendNewReviewAlert = async (params: {
   }
 
   const createdSince = params.since ?? new Date(Date.now() - 10 * 60 * 1000);
-  const threshold = settings.negativeReviewThreshold ?? 2;
+  const threshold =
+    settings.negativeReviewThreshold ?? DEFAULT_NEGATIVE_REVIEW_THRESHOLD;
   const reviewRows = await db
     .select({
       rating: reviews.rating,

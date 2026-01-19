@@ -1,6 +1,6 @@
 # Story 5.2: Alert Thresholds for Negative Reviews
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

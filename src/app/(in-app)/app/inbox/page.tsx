@@ -1,4 +1,5 @@
 import { auth, signIn } from "@/auth";
+import Link from "next/link";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewExports } from "@/db/schema/review-exports";
@@ -12,10 +13,12 @@ import { ExportHistory } from "@/features/inbox/export-history";
 import { ExportCsvButton } from "@/features/inbox/export-csv-button";
 import { EmailAlertsForm } from "@/features/alerts/email-alerts-form";
 import { appConfig } from "@/lib/config";
+import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import {
   reviewFiltersSchema,
   type ReviewFiltersInput,
 } from "@/lib/validations/review-filters.schema";
+import { getInboxSyncSummary } from "@/lib/reviews/sync-summary";
 
 export default async function InboxPage({
   searchParams,
@@ -119,6 +122,7 @@ export default async function InboxPage({
       status: reviewSyncStatus.status,
       lastSuccessAt: reviewSyncStatus.lastSuccessAt,
       lastAttemptAt: reviewSyncStatus.lastAttemptAt,
+      lastError: reviewSyncStatus.lastError,
       isStale: sql<boolean>`
         ${reviewSyncStatus.lastSuccessAt} IS NULL
         OR ${reviewSyncStatus.lastSuccessAt} < NOW() - (${appConfig.sync.staleHours} * INTERVAL '1 hour')
@@ -141,13 +145,11 @@ export default async function InboxPage({
         ? "stale"
         : "active"
     : "stale";
-  const syncStatusLabel = !syncRow
-    ? "Not synced yet"
-    : syncStatus === "failed"
-      ? "Sync error"
-      : syncStatus === "stale"
-        ? "Sync delayed"
-        : "Active";
+  const syncSummary = getInboxSyncSummary({
+    status: syncStatus,
+    lastError: syncRow?.lastError ?? null,
+    hasSync: Boolean(syncRow),
+  });
   const lastSyncLabel = syncRow?.lastSuccessAt
     ? syncRow.lastSuccessAt.toLocaleString()
     : "Not yet";
@@ -174,7 +176,9 @@ export default async function InboxPage({
     .limit(1)
     .then((rows) => rows[0] ?? null);
   const emailAlertsEnabled = alertSettingsRow?.emailAlertsEnabled ?? false;
-  const negativeReviewThreshold = alertSettingsRow?.negativeReviewThreshold ?? 2;
+  const negativeReviewThreshold =
+    alertSettingsRow?.negativeReviewThreshold ??
+    DEFAULT_NEGATIVE_REVIEW_THRESHOLD;
   const alertsPaused = alertSettingsRow?.alertsPaused ?? false;
 
   return (
@@ -186,8 +190,16 @@ export default async function InboxPage({
             All reviews from connected platforms appear here, newest first.
           </p>
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            <span>Sync status: {syncStatusLabel}</span>
+            <span>Sync status: {syncSummary.label}</span>
             <span>Last sync: {lastSyncLabel}</span>
+            {syncSummary.helperText ? (
+              <span className="text-amber-600">
+                {syncSummary.helperText}{" "}
+                <Link className="underline" href="/app/integrations">
+                  Go to integrations
+                </Link>
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

@@ -138,7 +138,8 @@ export function EmailAlertsForm({
             <FormItem className="flex flex-col gap-2 rounded-md border p-4">
               <FormLabel>Negative review threshold</FormLabel>
               <FormDescription>
-                Send alerts only for reviews rated at or below this value.
+                Set to 5 to alert on every new review. Lower values only alert on
+                negative reviews (1 = lowest).
               </FormDescription>
               <FormControl>
                 <Input
