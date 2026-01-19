@@ -4,8 +4,21 @@ import { accounts, users } from "@/db/schema/user";
 import { eq, and, sql } from "drizzle-orm";
 import { GoogleConnectionCard } from "@/features/integrations/google-connection-card";
 import { canDisconnectGoogle } from "@/lib/auth/google-disconnect";
+import {
+  getGoogleOAuthErrorMessage,
+  resolveGoogleConnectionStatus,
+} from "@/lib/auth/google-connection";
 
-export default async function IntegrationsPage() {
+type IntegrationsPageProps = {
+  searchParams?: Promise<{ error?: string | string[] }>;
+};
+
+export default async function IntegrationsPage({
+  searchParams,
+}: IntegrationsPageProps) {
+  const resolvedSearchParams = searchParams
+    ? await searchParams
+    : undefined;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -33,8 +46,6 @@ export default async function IntegrationsPage() {
     .limit(1)
     .then((rows) => rows[0]);
 
-  console.log(googleAccount);
-
   const userAuthState = await db
     .select({
       password: users.password,
@@ -57,8 +68,13 @@ export default async function IntegrationsPage() {
   });
 
   const isExpired = googleAccount?.isExpired ?? false;
-  const rawStatus = googleAccount?.connectionStatus ?? "active";
-  const status = isExpired ? "expired" : rawStatus;
+  const status = resolveGoogleConnectionStatus({
+    connectionStatus: googleAccount?.connectionStatus ?? null,
+    isExpired,
+  });
+  const errorMessage = getGoogleOAuthErrorMessage(
+    resolvedSearchParams?.error
+  );
 
   if (
     googleAccount &&
@@ -91,6 +107,7 @@ export default async function IntegrationsPage() {
         email={session.user.email}
         status={googleAccount ? status : null}
         lastAuthAt={googleAccount?.lastAuthAt?.toISOString() ?? null}
+        errorMessage={errorMessage}
       />
     </div>
   );

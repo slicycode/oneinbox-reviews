@@ -11,9 +11,11 @@ import MagicLinkEmail from './emails/MagicLinkEmail'
 import sendMail from './lib/email/sendMail'
 import { appConfig } from './lib/config'
 import { decryptJson } from './lib/encryption/edge-jwt'
+import {
+  GOOGLE_REQUIRED_SCOPES,
+  hasRequiredGoogleScopes,
+} from '@/lib/auth/google-connection'
 import { and, eq } from 'drizzle-orm'
-import { enqueueReviewBackfill } from '@/lib/jobs/review-backfill'
-import { enqueueReviewSync } from '@/lib/jobs/reviews-sync'
 
 // Overrides default session type
 declare module 'next-auth' {
@@ -63,10 +65,18 @@ const adapter = DrizzleAdapter(db, {
   verificationTokensTable: verificationTokens,
 })
 
+const googleScopes = [
+  'openid',
+  'email',
+  'profile',
+  ...GOOGLE_REQUIRED_SCOPES,
+].join(' ')
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/sign-in',
     signOut: '/sign-out',
+    error: '/app/integrations',
   },
   session: {
     strategy: 'jwt',
@@ -85,13 +95,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       if (process.env.NEXT_PUBLIC_SIGNIN_ENABLED !== 'true') {
         return false
       }
 
       if (!user?.email) {
         return false
+      }
+
+      if (account?.provider === 'google') {
+        const hasScopes = hasRequiredGoogleScopes(account.scope)
+        if (!hasScopes) {
+          return '/app/integrations?error=google_missing_scopes'
+        }
       }
 
       const existingUser = await db
@@ -139,13 +156,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   events: {
-    async signIn({ account, isNewUser }) {
+    async signIn({ account }) {
       if (account?.provider === 'google' && account.providerAccountId) {
         try {
           const existingAccount = await db
             .select({
-              userId: accounts.userId,
-              connectionStatus: accounts.connectionStatus,
               providerAccountId: accounts.providerAccountId,
               lastAuthAt: accounts.lastAuthAt,
             })
@@ -158,6 +173,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             )
             .limit(1)
             .then((rows) => rows[0])
+
+          const hasScopes = hasRequiredGoogleScopes(account.scope)
+          if (!hasScopes) {
+            if (!existingAccount?.lastAuthAt) {
+              await db
+                .delete(accounts)
+                .where(
+                  and(
+                    eq(accounts.provider, account.provider),
+                    eq(accounts.providerAccountId, account.providerAccountId)
+                  )
+                )
+            }
+            return
+          }
 
           await db
             .update(accounts)
@@ -172,23 +202,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 eq(accounts.providerAccountId, account.providerAccountId)
               )
             )
-
-          if (existingAccount?.connectionStatus === 'expired') {
-            await enqueueReviewBackfill(
-              existingAccount.userId,
-              'google',
-              existingAccount.providerAccountId
-            )
-          }
-
-          if (isNewUser || !existingAccount?.lastAuthAt) {
-            await enqueueReviewSync(
-              existingAccount.userId,
-              'google',
-              'initial',
-              existingAccount.providerAccountId
-            )
-          }
         } catch (error) {
           console.error('Failed to update Google connection status:', error)
         }
@@ -200,6 +213,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: googleScopes,
+        },
+      },
     }),
     emailProvider,
     // Password-based authentication

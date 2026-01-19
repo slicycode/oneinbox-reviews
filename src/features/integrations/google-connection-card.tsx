@@ -32,6 +32,7 @@ interface GoogleConnectionCardProps {
   email?: string | null;
   status?: "active" | "expired" | "error" | null;
   lastAuthAt?: string | null;
+  errorMessage?: string | null;
 }
 
 export function GoogleConnectionCard({
@@ -41,6 +42,7 @@ export function GoogleConnectionCard({
   email,
   status,
   lastAuthAt,
+  errorMessage,
 }: GoogleConnectionCardProps) {
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
@@ -103,6 +105,14 @@ export function GoogleConnectionCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {errorMessage ? (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
         {isConnected ? (
           <div className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
