@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RefreshCcwIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { normalizeCooldownSeconds } from "../../lib/reviews/sync-cooldown";
 
 export function ReviewSyncButton({
   initialCooldownSeconds = null,
@@ -14,7 +15,7 @@ export function ReviewSyncButton({
 }) {
   const [isSyncing, setIsSyncing] = React.useState(false);
   const [cooldownRemaining, setCooldownRemaining] = React.useState<number | null>(
-    initialCooldownSeconds
+    () => normalizeCooldownSeconds(initialCooldownSeconds)
   );
   const router = useRouter();
 
@@ -24,6 +25,10 @@ export function ReviewSyncButton({
     const paddedSeconds = remaining.toString().padStart(2, "0");
     return minutes > 0 ? `${minutes}m ${paddedSeconds}s` : `${remaining}s`;
   };
+
+  React.useEffect(() => {
+    setCooldownRemaining(normalizeCooldownSeconds(initialCooldownSeconds));
+  }, [initialCooldownSeconds]);
 
   React.useEffect(() => {
     if (!cooldownRemaining) {

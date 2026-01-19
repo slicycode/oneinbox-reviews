@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getGoogleOAuthErrorMessage,
+  getGoogleSyncErrorGuidance,
   hasRequiredGoogleScopes,
   isGoogleAuthError,
   parseGoogleSyncStatus,
@@ -82,6 +83,17 @@ test("resolveGoogleSyncSummary returns pending when no success yet", () => {
   );
 });
 
+test("resolveGoogleSyncSummary does not require action when stale", () => {
+  assert.deepEqual(
+    resolveGoogleSyncSummary({
+      isConnected: true,
+      syncStatus: "stale",
+      lastSuccessAt: new Date(),
+    }),
+    { label: "Sync delayed", requiresAction: false }
+  );
+});
+
 test("resolveGoogleSyncSummary returns active when synced", () => {
   assert.deepEqual(
     resolveGoogleSyncSummary({
@@ -99,4 +111,22 @@ test("parseGoogleSyncStatus returns null for unknown status", () => {
 
 test("isGoogleAuthError returns true for revoked tokens", () => {
   assert.equal(isGoogleAuthError("invalid_grant: token revoked"), true);
+});
+
+test("getGoogleSyncErrorGuidance returns guidance for disabled API", () => {
+  assert.equal(
+    getGoogleSyncErrorGuidance(
+      "My Business Account Management API has not been used in project 123 before or it is disabled. SERVICE_DISABLED"
+    ),
+    "Google Business Profile API is disabled for this app. Enable it in Google Cloud, then refresh."
+  );
+});
+
+test("getGoogleSyncErrorGuidance returns guidance for rate limits", () => {
+  assert.equal(
+    getGoogleSyncErrorGuidance(
+      "Quota exceeded for quota metric 'Requests' RESOURCE_EXHAUSTED RATE_LIMIT_EXCEEDED"
+    ),
+    "Google rate limit reached for this app. Try again later or increase the API quota."
+  );
 });

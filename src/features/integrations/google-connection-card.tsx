@@ -37,6 +37,7 @@ interface GoogleConnectionCardProps {
   syncStatusLabel?: string | null;
   syncRequiresAction?: boolean;
   syncError?: string | null;
+  syncErrorGuidance?: string | null;
   showReconnect?: boolean;
 }
 
@@ -52,6 +53,7 @@ export function GoogleConnectionCard({
   syncStatusLabel,
   syncRequiresAction = false,
   syncError,
+  syncErrorGuidance,
   showReconnect = false,
 }: GoogleConnectionCardProps) {
   const [isConnecting, setIsConnecting] = React.useState(false);
@@ -163,6 +165,9 @@ export function GoogleConnectionCard({
               <p className="text-xs text-amber-600">
                 Action required to restore syncing.
               </p>
+            ) : null}
+            {syncErrorGuidance ? (
+              <p className="text-xs text-amber-600">{syncErrorGuidance}</p>
             ) : null}
             {syncError || syncStatusLabel === "Sync error" ? (
               <p className="text-xs text-muted-foreground">

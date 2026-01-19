@@ -11,6 +11,7 @@ test("getInboxSyncSummary returns not synced for empty state", () => {
 
   assert.equal(summary.label, "Not synced yet");
   assert.ok(summary.helperText?.includes("Connect Google"));
+  assert.equal(summary.showIntegrationsLink, true);
 });
 
 test("getInboxSyncSummary returns auth guidance on token errors", () => {
@@ -22,6 +23,7 @@ test("getInboxSyncSummary returns auth guidance on token errors", () => {
 
   assert.equal(summary.label, "Sync error");
   assert.ok(summary.helperText?.includes("Reconnect"));
+  assert.equal(summary.showIntegrationsLink, true);
 });
 
 test("getInboxSyncSummary returns default failed guidance", () => {
@@ -33,6 +35,7 @@ test("getInboxSyncSummary returns default failed guidance", () => {
 
   assert.equal(summary.label, "Sync error");
   assert.ok(summary.helperText?.includes("Sync failed"));
+  assert.equal(summary.showIntegrationsLink, true);
 });
 
 test("getInboxSyncSummary returns active without helper text", () => {
@@ -44,4 +47,17 @@ test("getInboxSyncSummary returns active without helper text", () => {
 
   assert.equal(summary.label, "Active");
   assert.equal(summary.helperText, null);
+  assert.equal(summary.showIntegrationsLink, false);
+});
+
+test("getInboxSyncSummary does not suggest integrations for stale", () => {
+  const summary = getInboxSyncSummary({
+    status: "stale",
+    lastError: null,
+    hasSync: true,
+  });
+
+  assert.equal(summary.label, "Sync delayed");
+  assert.ok(summary.helperText?.includes("No recent sync yet"));
+  assert.equal(summary.showIntegrationsLink, false);
 });

@@ -46,7 +46,7 @@ export function resolveGoogleSyncSummary({
   }
 
   if (syncStatus === "stale") {
-    return { label: "Sync delayed", requiresAction: true };
+    return { label: "Sync delayed", requiresAction: false };
   }
 
   if (!lastSuccessAt) {
@@ -87,6 +87,48 @@ export function isGoogleAuthError(
 
   const normalized = message.toLowerCase();
   return GOOGLE_AUTH_ERROR_HINTS.some((hint) => normalized.includes(hint));
+}
+
+const GOOGLE_SYNC_SERVICE_DISABLED_HINTS = [
+  "service_disabled",
+  "mybusinessaccountmanagement.googleapis.com",
+  "mybusinessbusinessinformation.googleapis.com",
+  "mybusiness.googleapis.com",
+];
+const GOOGLE_SYNC_RATE_LIMIT_HINTS = [
+  "resource_exhausted",
+  "rate_limit_exceeded",
+  "quota exceeded",
+  "quota_limit_value",
+];
+
+export function getGoogleSyncErrorGuidance(
+  message: string | null | undefined
+): string | null {
+  if (!message) {
+    return null;
+  }
+
+  const normalized = message.toLowerCase();
+  const isServiceDisabled = GOOGLE_SYNC_SERVICE_DISABLED_HINTS.some((hint) =>
+    normalized.includes(hint)
+  );
+  if (isServiceDisabled) {
+    return "Google Business Profile API is disabled for this app. Enable it in Google Cloud, then refresh.";
+  }
+
+  const isRateLimited = GOOGLE_SYNC_RATE_LIMIT_HINTS.some((hint) =>
+    normalized.includes(hint)
+  );
+  if (isRateLimited) {
+    return "Google rate limit reached for this app. Try again later or increase the API quota.";
+  }
+
+  if (isGoogleAuthError(message)) {
+    return "Google access expired. Reconnect to resume syncing.";
+  }
+
+  return null;
 }
 
 export function hasRequiredGoogleScopes(

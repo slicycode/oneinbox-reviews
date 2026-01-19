@@ -194,10 +194,15 @@ export default async function InboxPage({
             <span>Last sync: {lastSyncLabel}</span>
             {syncSummary.helperText ? (
               <span className="text-amber-600">
-                {syncSummary.helperText}{" "}
-                <Link className="underline" href="/app/integrations">
-                  Go to integrations
-                </Link>
+                {syncSummary.helperText}
+                {syncSummary.showIntegrationsLink ? (
+                  <>
+                    {" "}
+                    <Link className="underline" href="/app/integrations">
+                      Go to integrations
+                    </Link>
+                  </>
+                ) : null}
               </span>
             ) : null}
           </div>

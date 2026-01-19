@@ -11,6 +11,7 @@ const GOOGLE_ACCOUNT_API_BASE =
 const GOOGLE_BUSINESS_INFO_API_BASE =
   "https://mybusinessbusinessinformation.googleapis.com/v1";
 const GOOGLE_REVIEWS_API_BASE = "https://mybusiness.googleapis.com/v4";
+const GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
 type ReviewSyncJob = {
   id: string;
@@ -70,6 +71,53 @@ const fetchGoogleApi = async <T>(
   }
 
   return (await response.json()) as T;
+};
+
+export const isGoogleTokenExpired = (expiresAt?: number | null): boolean => {
+  if (!expiresAt) {
+    return true;
+  }
+
+  const bufferMs = 60 * 1000;
+  return expiresAt * 1000 - bufferMs < Date.now();
+};
+
+const refreshGoogleAccessToken = async (refreshToken: string) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Google OAuth credentials are not configured.");
+  }
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  });
+
+  const response = await fetch(GOOGLE_TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "Unknown error");
+    throw new Error(errorText || "Failed to refresh Google access token.");
+  }
+
+  const payload = (await response.json()) as {
+    access_token?: string;
+    expires_in?: number;
+  };
+
+  if (!payload.access_token) {
+    throw new Error("Google access token refresh failed.");
+  }
+
+  return payload;
 };
 
 export const mapGoogleStarRating = (
@@ -202,6 +250,7 @@ const ingestGoogleReviews = async (userId: string) => {
     .select({
       accessToken: accounts.access_token,
       expiresAt: accounts.expires_at,
+      refreshToken: accounts.refresh_token,
     })
     .from(accounts)
     .where(
@@ -214,17 +263,42 @@ const ingestGoogleReviews = async (userId: string) => {
     .limit(1)
     .then((rows) => rows[0]);
 
-  if (!accessToken?.accessToken) {
-    throw new Error("Google access token missing. Reconnect to sync reviews.");
+  let googleAccessToken = accessToken?.accessToken ?? null;
+  if (!googleAccessToken || isGoogleTokenExpired(accessToken?.expiresAt ?? null)) {
+    if (!accessToken?.refreshToken) {
+      throw new Error(
+        "Google access expired. Reconnect Google to sync reviews."
+      );
+    }
+
+    const refreshed = await refreshGoogleAccessToken(accessToken.refreshToken);
+    googleAccessToken = refreshed.access_token ?? null;
+    const expiresAt = refreshed.expires_in
+      ? Math.floor(Date.now() / 1000) + refreshed.expires_in
+      : null;
+
+    await db
+      .update(accounts)
+      .set({
+        access_token: googleAccessToken,
+        expires_at: expiresAt,
+      })
+      .where(
+        and(
+          eq(accounts.userId, userId),
+          eq(accounts.provider, "google"),
+          eq(accounts.providerAccountId, googleAccount.providerAccountId)
+        )
+      );
   }
 
-  if (accessToken.expiresAt && accessToken.expiresAt * 1000 < Date.now()) {
-    throw new Error("Google access token expired. Reconnect to sync reviews.");
+  if (!googleAccessToken) {
+    throw new Error("Google access token missing. Reconnect to sync reviews.");
   }
 
   const accountList = await fetchGoogleApi<GoogleAccountList>(
     `${GOOGLE_ACCOUNT_API_BASE}/accounts`,
-    accessToken.accessToken
+    googleAccessToken
   );
   const account = accountList.accounts?.[0];
 
@@ -234,7 +308,7 @@ const ingestGoogleReviews = async (userId: string) => {
 
   const locationList = await fetchGoogleApi<GoogleLocationList>(
     `${GOOGLE_BUSINESS_INFO_API_BASE}/${account.name}/locations?readMask=name,title,metadata`,
-    accessToken.accessToken
+    googleAccessToken
   );
   const location = locationList.locations?.[0];
 
@@ -244,7 +318,7 @@ const ingestGoogleReviews = async (userId: string) => {
 
   const reviewList = await fetchGoogleApi<GoogleReviewList>(
     `${GOOGLE_REVIEWS_API_BASE}/${location.name}/reviews`,
-    accessToken.accessToken
+    googleAccessToken
   );
 
   const now = new Date();

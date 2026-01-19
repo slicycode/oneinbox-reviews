@@ -7,6 +7,7 @@ import { GoogleConnectionCard } from "@/features/integrations/google-connection-
 import { canDisconnectGoogle } from "@/lib/auth/google-disconnect";
 import {
   getGoogleOAuthErrorMessage,
+  getGoogleSyncErrorGuidance,
   hasRequiredGoogleScopes,
   isGoogleAuthError,
   parseGoogleSyncStatus,
@@ -106,6 +107,9 @@ export default async function IntegrationsPage({
       : hasAuthError
         ? "Google connection expired. Please reconnect to resume syncing."
         : null);
+  const syncErrorGuidance = getGoogleSyncErrorGuidance(
+    syncStatus?.lastError ?? null
+  );
   const syncSummary = resolveGoogleSyncSummary({
     isConnected: Boolean(googleAccount),
     syncStatus: parseGoogleSyncStatus(syncStatus?.status),
@@ -152,6 +156,7 @@ export default async function IntegrationsPage({
         syncStatusLabel={syncSummary.label}
         syncRequiresAction={syncRequiresAction}
         syncError={syncStatus?.lastError ?? null}
+        syncErrorGuidance={syncErrorGuidance}
         showReconnect={effectiveStatus !== "active" || missingScopes}
       />
     </div>

@@ -16,6 +16,8 @@ import {
   hasRequiredGoogleScopes,
 } from '@/lib/auth/google-connection'
 import { and, eq } from 'drizzle-orm'
+import { reviewSyncStatus } from './db/schema/review-sync-status'
+import { getSyncResetUpdate } from './lib/reviews/sync-reset'
 
 // Overrides default session type
 declare module 'next-auth' {
@@ -156,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   events: {
-    async signIn({ account }) {
+    async signIn({ account, user }) {
       if (account?.provider === 'google' && account.providerAccountId) {
         try {
           const existingAccount = await db
@@ -202,6 +204,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 eq(accounts.providerAccountId, account.providerAccountId)
               )
             )
+
+          if (user?.id) {
+            const now = new Date()
+            await db
+              .insert(reviewSyncStatus)
+              .values({
+                userId: user.id,
+                provider: 'google',
+                status: 'stale',
+                lastError: null,
+                createdAt: now,
+                updatedAt: now,
+              })
+              .onConflictDoUpdate({
+                target: [
+                  reviewSyncStatus.userId,
+                  reviewSyncStatus.provider,
+                ],
+                set: getSyncResetUpdate(now),
+              })
+          }
         } catch (error) {
           console.error('Failed to update Google connection status:', error)
         }
@@ -216,6 +239,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           scope: googleScopes,
+          access_type: 'offline',
+          prompt: 'consent',
         },
       },
     }),
