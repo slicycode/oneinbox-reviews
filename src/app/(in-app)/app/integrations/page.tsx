@@ -1,12 +1,17 @@
 import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { accounts, users } from "@/db/schema/user";
+import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { eq, and, sql } from "drizzle-orm";
 import { GoogleConnectionCard } from "@/features/integrations/google-connection-card";
 import { canDisconnectGoogle } from "@/lib/auth/google-disconnect";
 import {
   getGoogleOAuthErrorMessage,
+  hasRequiredGoogleScopes,
+  isGoogleAuthError,
+  parseGoogleSyncStatus,
   resolveGoogleConnectionStatus,
+  resolveGoogleSyncSummary,
 } from "@/lib/auth/google-connection";
 
 type IntegrationsPageProps = {
@@ -31,6 +36,7 @@ export default async function IntegrationsPage({
       connectionStatus: accounts.connectionStatus,
       lastAuthAt: accounts.lastAuthAt,
       expiresAt: accounts.expires_at,
+      scope: accounts.scope,
       isExpired: sql<boolean>`
         ${accounts.expires_at} IS NOT NULL
         AND ${accounts.expires_at} < EXTRACT(EPOCH FROM NOW())
@@ -67,14 +73,48 @@ export default async function IntegrationsPage({
     providers: connectedProviders.map((account) => account.provider),
   });
 
+  const syncStatus = await db
+    .select({
+      status: reviewSyncStatus.status,
+      lastSuccessAt: reviewSyncStatus.lastSuccessAt,
+      lastError: reviewSyncStatus.lastError,
+    })
+    .from(reviewSyncStatus)
+    .where(
+      and(
+        eq(reviewSyncStatus.userId, session.user.id),
+        eq(reviewSyncStatus.provider, "google")
+      )
+    )
+    .limit(1)
+    .then((rows) => rows[0]);
+
   const isExpired = googleAccount?.isExpired ?? false;
   const status = resolveGoogleConnectionStatus({
     connectionStatus: googleAccount?.connectionStatus ?? null,
     isExpired,
   });
-  const errorMessage = getGoogleOAuthErrorMessage(
-    resolvedSearchParams?.error
-  );
+  const missingScopes = googleAccount
+    ? !hasRequiredGoogleScopes(googleAccount.scope ?? "")
+    : false;
+  const hasAuthError = isGoogleAuthError(syncStatus?.lastError ?? null);
+  const effectiveStatus = hasAuthError ? "expired" : status;
+  const errorMessage =
+    getGoogleOAuthErrorMessage(resolvedSearchParams?.error) ??
+    (missingScopes
+      ? getGoogleOAuthErrorMessage("google_missing_scopes")
+      : hasAuthError
+        ? "Google connection expired. Please reconnect to resume syncing."
+        : null);
+  const syncSummary = resolveGoogleSyncSummary({
+    isConnected: Boolean(googleAccount),
+    syncStatus: parseGoogleSyncStatus(syncStatus?.status),
+    lastSuccessAt: syncStatus?.lastSuccessAt ?? null,
+  });
+  const syncRequiresAction =
+    syncSummary.requiresAction ||
+    effectiveStatus !== "active" ||
+    missingScopes;
 
   if (
     googleAccount &&
@@ -105,9 +145,14 @@ export default async function IntegrationsPage({
         canDisconnect={canDisconnect}
         accountId={googleAccount?.providerAccountId}
         email={session.user.email}
-        status={googleAccount ? status : null}
+        status={googleAccount ? effectiveStatus : null}
         lastAuthAt={googleAccount?.lastAuthAt?.toISOString() ?? null}
         errorMessage={errorMessage}
+        lastSyncAt={syncStatus?.lastSuccessAt?.toISOString() ?? null}
+        syncStatusLabel={syncSummary.label}
+        syncRequiresAction={syncRequiresAction}
+        syncError={syncStatus?.lastError ?? null}
+        showReconnect={effectiveStatus !== "active" || missingScopes}
       />
     </div>
   );

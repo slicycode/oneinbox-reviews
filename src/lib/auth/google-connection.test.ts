@@ -3,6 +3,9 @@ import test from "node:test";
 import {
   getGoogleOAuthErrorMessage,
   hasRequiredGoogleScopes,
+  isGoogleAuthError,
+  parseGoogleSyncStatus,
+  resolveGoogleSyncSummary,
   resolveGoogleConnectionStatus,
 } from "@/lib/auth/google-connection";
 
@@ -55,4 +58,34 @@ test("getGoogleOAuthErrorMessage returns message for missing scopes", () => {
     getGoogleOAuthErrorMessage("google_missing_scopes"),
     "Google connection needs additional permissions. Please approve all requested access and try again."
   );
+});
+
+test("resolveGoogleSyncSummary returns error when failed", () => {
+  assert.deepEqual(
+    resolveGoogleSyncSummary({
+      isConnected: true,
+      syncStatus: "failed",
+      lastSuccessAt: new Date(),
+    }),
+    { label: "Sync error", requiresAction: true }
+  );
+});
+
+test("resolveGoogleSyncSummary returns pending when no success yet", () => {
+  assert.deepEqual(
+    resolveGoogleSyncSummary({
+      isConnected: true,
+      syncStatus: "active",
+      lastSuccessAt: null,
+    }),
+    { label: "Sync pending", requiresAction: false }
+  );
+});
+
+test("parseGoogleSyncStatus returns null for unknown status", () => {
+  assert.equal(parseGoogleSyncStatus("unknown"), null);
+});
+
+test("isGoogleAuthError returns true for revoked tokens", () => {
+  assert.equal(isGoogleAuthError("invalid_grant: token revoked"), true);
 });

@@ -33,6 +33,11 @@ interface GoogleConnectionCardProps {
   status?: "active" | "expired" | "error" | null;
   lastAuthAt?: string | null;
   errorMessage?: string | null;
+  lastSyncAt?: string | null;
+  syncStatusLabel?: string | null;
+  syncRequiresAction?: boolean;
+  syncError?: string | null;
+  showReconnect?: boolean;
 }
 
 export function GoogleConnectionCard({
@@ -43,6 +48,11 @@ export function GoogleConnectionCard({
   status,
   lastAuthAt,
   errorMessage,
+  lastSyncAt,
+  syncStatusLabel,
+  syncRequiresAction = false,
+  syncError,
+  showReconnect = false,
 }: GoogleConnectionCardProps) {
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
@@ -93,7 +103,6 @@ export function GoogleConnectionCard({
     }
   };
 
-  const showReconnect = isConnected && status === "expired";
   const showDisconnectGuard = isConnected && !canDisconnect;
 
   return (
@@ -118,9 +127,17 @@ export function GoogleConnectionCard({
             <p className="text-sm text-muted-foreground">
               Status:{" "}
               <span className="text-foreground">
-                {status
-                  ? status.charAt(0).toUpperCase() + status.slice(1)
-                  : "Active"}
+                {status === "expired"
+                  ? "Connection expired"
+                  : status === "error"
+                    ? "Connection error"
+                    : "Connected"}
+              </span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Review syncing:{" "}
+              <span className="text-foreground">
+                {syncStatusLabel ?? "Sync status unknown"}
               </span>
             </p>
             {email ? (
@@ -131,6 +148,26 @@ export function GoogleConnectionCard({
             {lastAuthAt ? (
               <p className="text-xs text-muted-foreground">
                 Last auth: {new Date(lastAuthAt).toLocaleString()}
+              </p>
+            ) : null}
+            {lastSyncAt ? (
+              <p className="text-xs text-muted-foreground">
+                Last sync: {new Date(lastSyncAt).toLocaleString()}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Last sync: Not available yet
+              </p>
+            )}
+            {syncRequiresAction ? (
+              <p className="text-xs text-amber-600">
+                Action required to restore syncing.
+              </p>
+            ) : null}
+            {syncError || syncStatusLabel === "Sync error" ? (
+              <p className="text-xs text-muted-foreground">
+                We ran into an issue while syncing. Try reconnecting if this
+                continues.
               </p>
             ) : null}
             {accountId ? (

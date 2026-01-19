@@ -159,30 +159,8 @@ export const processReviewSyncJobs = async (options?: { userId?: string }) => {
         });
       }
 
-      const existingStatus = await db
-        .select({
-          status: reviewSyncStatus.status,
-          lastSuccessAt: reviewSyncStatus.lastSuccessAt,
-        })
-        .from(reviewSyncStatus)
-        .where(
-          and(
-            eq(reviewSyncStatus.userId, job.userId),
-            eq(reviewSyncStatus.provider, job.provider)
-          )
-        )
-        .limit(1)
-        .then((rows) => rows[0]);
-
-      const normalizedStatus =
-        existingStatus?.status === "failed"
-          ? "failed"
-          : existingStatus?.status === "active"
-            ? "active"
-            : "stale";
-      const nextStatus = insertedCount > 0 ? "active" : normalizedStatus;
-      const lastSuccessAt =
-        insertedCount > 0 ? jobStartedAt : existingStatus?.lastSuccessAt ?? null;
+      const nextStatus = "active";
+      const lastSuccessAt = jobStartedAt;
 
       await db
         .update(reviewSyncJobs)

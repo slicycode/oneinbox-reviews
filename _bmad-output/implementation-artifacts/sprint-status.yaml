@@ -105,10 +105,8 @@ sprint_summaries:
     included_stories:
       - "2-1-connect-google-business-profile"
       - "2-2-connection-status-last-auth-health"
-      - "2-3-re-authenticate-expired-connection"
       - "3-1-ingest-google-reviews-initial-sync"
       - "3-2-sync-status-last-sync-time"
-      - "3-3-backfill-after-re-auth"
       - "3-4-review-inbox-list-detail"
       - "4-1-review-status-updates"
       - "5-1-email-alerts-new-reviews"
