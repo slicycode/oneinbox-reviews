@@ -141,9 +141,16 @@ export default async function InboxPage({
         ? "stale"
         : "active"
     : "stale";
+  const syncStatusLabel = !syncRow
+    ? "Not synced yet"
+    : syncStatus === "failed"
+      ? "Sync error"
+      : syncStatus === "stale"
+        ? "Sync delayed"
+        : "Active";
   const lastSyncLabel = syncRow?.lastSuccessAt
-    ? syncRow.lastSuccessAt.toISOString()
-    : "Never";
+    ? syncRow.lastSuccessAt.toLocaleString()
+    : "Not yet";
   const cooldownSeconds = (() => {
     if (!syncRow?.lastAttemptAt) {
       return null;
@@ -176,10 +183,10 @@ export default async function InboxPage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
           <p className="text-sm text-muted-foreground">
-            All reviews from connected platforms appear here.
+            All reviews from connected platforms appear here, newest first.
           </p>
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-            <span>Sync status: {syncStatus}</span>
+            <span>Sync status: {syncStatusLabel}</span>
             <span>Last sync: {lastSyncLabel}</span>
           </div>
         </div>

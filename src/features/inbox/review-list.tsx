@@ -75,7 +75,8 @@ export function ReviewList({ reviews }: ReviewListProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Once your Google account is connected, reviews will appear here.
+            If you just connected Google, your first sync can take a few minutes.
+            You can refresh or check your integration status.
           </p>
           <Button asChild className="mt-4" size="sm">
             <Link href="/app/integrations">Go to integrations</Link>

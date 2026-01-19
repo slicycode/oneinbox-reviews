@@ -50,10 +50,10 @@ export function resolveGoogleSyncSummary({
   }
 
   if (!lastSuccessAt) {
-    return { label: "Sync pending", requiresAction: false };
+    return { label: "First sync pending", requiresAction: false };
   }
 
-  return { label: "Syncing", requiresAction: false };
+  return { label: "Sync active", requiresAction: false };
 }
 
 export function parseGoogleSyncStatus(

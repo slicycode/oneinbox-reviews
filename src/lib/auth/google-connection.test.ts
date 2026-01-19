@@ -78,7 +78,18 @@ test("resolveGoogleSyncSummary returns pending when no success yet", () => {
       syncStatus: "active",
       lastSuccessAt: null,
     }),
-    { label: "Sync pending", requiresAction: false }
+    { label: "First sync pending", requiresAction: false }
+  );
+});
+
+test("resolveGoogleSyncSummary returns active when synced", () => {
+  assert.deepEqual(
+    resolveGoogleSyncSummary({
+      isConnected: true,
+      syncStatus: "active",
+      lastSuccessAt: new Date(),
+    }),
+    { label: "Sync active", requiresAction: false }
   );
 });
 
