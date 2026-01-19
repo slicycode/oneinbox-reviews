@@ -77,6 +77,9 @@ export function ReviewList({ reviews }: ReviewListProps) {
           <p className="text-sm text-muted-foreground">
             Once your Google account is connected, reviews will appear here.
           </p>
+          <Button asChild className="mt-4" size="sm">
+            <Link href="/app/integrations">Go to integrations</Link>
+          </Button>
         </CardContent>
       </Card>
     );

@@ -164,6 +164,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             .set({
               connectionStatus: 'active',
               lastAuthAt: new Date(),
+              expires_at: account.expires_at ?? null,
             })
             .where(
               and(

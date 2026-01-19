@@ -49,7 +49,7 @@ export function ResetPasswordForm({
       }
 
       setEmailSent(true);
-      toast.success("Check your email for password reset instructions");
+      toast.success("Check your email for password instructions");
     } catch (error) {
       console.error("Reset password error:", error);
       toast.error("Something went wrong");
@@ -94,7 +94,7 @@ export function ResetPasswordForm({
 
         <Button type="submit" disabled={isLoading} className="w-full py-6">
           {isLoading && <FaSpinner className="mr-2 h-4 w-4 animate-spin" />}
-          Send Reset Link
+          Send Link
         </Button>
       </form>
     </div>

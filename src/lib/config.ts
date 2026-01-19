@@ -21,7 +21,7 @@ export const appConfig: AppConfigPublic = {
       postalCode: '160002',
       country: 'India',
     },
-    email: 'ssent.hq@gmail.com',
+    email: 'no-reply@oneinbox.dev',
     phone: '+91 9876543210',
   },
   social: {
@@ -32,8 +32,8 @@ export const appConfig: AppConfigPublic = {
     youtube: 'https://youtube.com/-',
   },
   email: {
-    senderName: 'Indie Kit',
-    senderEmail: 'ssent.hq@gmail.com',
+    senderName: 'OneInbox',
+    senderEmail: 'no-reply@oneinbox.dev',
   },
   sync: {
     staleHours: 24,

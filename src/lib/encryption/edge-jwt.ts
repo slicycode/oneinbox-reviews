@@ -6,11 +6,11 @@ import { SignJWT, jwtVerify } from 'jose';
  * @returns URL-encoded JWT token
  */
 export const encryptJson = async <T>(data: T): Promise<string> => {
-  if (!process.env.AUTH_SECRET) {
-    throw new Error('AUTH_SECRET environment variable is not set');
+  if (!process.env.NEXTAUTH_SECRET) {
+    throw new Error('NEXTAUTH_SECRET environment variable is not set');
   }
   
-  const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
   
   // Create JWT with jose library (Edge compatible)
   const token = await new SignJWT({ ...data as object })
@@ -29,15 +29,15 @@ export const encryptJson = async <T>(data: T): Promise<string> => {
  * @returns The original data
  */
 export const decryptJson = async <T = Record<string, unknown>>(token: string): Promise<T> => {
-  if (!process.env.AUTH_SECRET) {
-    throw new Error('AUTH_SECRET environment variable is not set');
+  if (!process.env.NEXTAUTH_SECRET) {
+    throw new Error('NEXTAUTH_SECRET environment variable is not set');
   }
   
   try {
     // First URL decode the token
     const decodedToken = decodeURIComponent(token);
     
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
     
     // Verify and decode the JWT
     const { payload } = await jwtVerify(decodedToken, secret);

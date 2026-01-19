@@ -33,6 +33,8 @@ export default async function IntegrationsPage() {
     .limit(1)
     .then((rows) => rows[0]);
 
+  console.log(googleAccount);
+
   const userAuthState = await db
     .select({
       password: users.password,

@@ -7,12 +7,44 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcwIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function ReviewSyncButton() {
+export function ReviewSyncButton({
+  initialCooldownSeconds = null,
+}: {
+  initialCooldownSeconds?: number | null;
+}) {
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = React.useState<number | null>(
+    initialCooldownSeconds
+  );
   const router = useRouter();
 
+  const formatCooldown = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remaining = seconds % 60;
+    const paddedSeconds = remaining.toString().padStart(2, "0");
+    return minutes > 0 ? `${minutes}m ${paddedSeconds}s` : `${remaining}s`;
+  };
+
+  React.useEffect(() => {
+    if (!cooldownRemaining) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setCooldownRemaining((current) => {
+        if (!current || current <= 1) {
+          window.clearInterval(timer);
+          return null;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [cooldownRemaining]);
+
   const handleSync = async () => {
-    if (isSyncing) {
+    if (isSyncing || cooldownRemaining) {
       return;
     }
 
@@ -26,6 +58,13 @@ export function ReviewSyncButton() {
           errorData?.error?.message ||
           errorData?.error ||
           "Failed to sync reviews";
+        const retryAfterSeconds = errorData?.error?.retryAfterSeconds;
+        if (
+          errorData?.error?.code === "review_sync_rate_limited" &&
+          typeof retryAfterSeconds === "number"
+        ) {
+          setCooldownRemaining(retryAfterSeconds);
+        }
         throw new Error(message);
       }
 
@@ -52,10 +91,12 @@ export function ReviewSyncButton() {
       variant="secondary"
       className="w-fit"
       onClick={handleSync}
-      disabled={isSyncing}
+      disabled={isSyncing || Boolean(cooldownRemaining)}
     >
       <RefreshCcwIcon className={cn("size-4", isSyncing && "animate-spin")} />
-      {isSyncing ? "Refresh Reviews" : "Refresh Reviews"}
+      {cooldownRemaining
+        ? `Refresh in ${formatCooldown(cooldownRemaining)}`
+        : "Refresh Reviews"}
     </Button>
   );
 }

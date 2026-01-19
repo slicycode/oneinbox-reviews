@@ -5,11 +5,11 @@ import { reviewExports } from "@/db/schema/review-exports";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
-import { Button } from "@/components/ui/button";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
 import { ReviewFilters } from "@/features/inbox/review-filters";
 import { ExportHistory } from "@/features/inbox/export-history";
+import { ExportCsvButton } from "@/features/inbox/export-csv-button";
 import { EmailAlertsForm } from "@/features/alerts/email-alerts-form";
 import { appConfig } from "@/lib/config";
 import {
@@ -118,6 +118,7 @@ export default async function InboxPage({
     .select({
       status: reviewSyncStatus.status,
       lastSuccessAt: reviewSyncStatus.lastSuccessAt,
+      lastAttemptAt: reviewSyncStatus.lastAttemptAt,
       isStale: sql<boolean>`
         ${reviewSyncStatus.lastSuccessAt} IS NULL
         OR ${reviewSyncStatus.lastSuccessAt} < NOW() - (${appConfig.sync.staleHours} * INTERVAL '1 hour')
@@ -143,6 +144,17 @@ export default async function InboxPage({
   const lastSyncLabel = syncRow?.lastSuccessAt
     ? syncRow.lastSuccessAt.toISOString()
     : "Never";
+  const cooldownSeconds = (() => {
+    if (!syncRow?.lastAttemptAt) {
+      return null;
+    }
+    const cooldownMs = 5 * 60 * 1000;
+    const elapsed = Date.now() - syncRow.lastAttemptAt.getTime();
+    if (elapsed >= cooldownMs) {
+      return null;
+    }
+    return Math.ceil((cooldownMs - elapsed) / 1000);
+  })();
 
   const alertSettingsRow = await db
     .select({
@@ -172,12 +184,8 @@ export default async function InboxPage({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href={exportHref} download>
-              Export CSV
-            </a>
-          </Button>
-          <ReviewSyncButton />
+          <ExportCsvButton href={exportHref} />
+          <ReviewSyncButton initialCooldownSeconds={cooldownSeconds} />
         </div>
       </div>
       <ReviewFilters defaultValues={filters} />
