@@ -2,21 +2,43 @@ import withAuthRequired from "@/lib/auth/withAuthRequired";
 import { profileUpdateSchema } from "@/lib/validations/profile.schema";
 import { db } from "@/db";
 import { users } from "@/db/schema/user";
+import { subscriptions } from "@/db/schema/subscriptions";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { MeResponse } from "./types";
+import type { PlanTier } from "@/lib/plans/config";
 
 export const GET = withAuthRequired(async (req, context) => {
-  const { getCurrentPlan, getUser } = context;
+  const { getCurrentPlan, getUser, session } = context;
 
   // You can also use context.session to get user id and email
   // from the jwt token (no database call is made in that case)
 
   const currentPlan = await getCurrentPlan();
   const userFromDb = await getUser();
+
+  // Fetch subscription data
+  const subscriptionData = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, session.user.id))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  const subscription = subscriptionData
+    ? {
+        status: subscriptionData.status,
+        planTier: subscriptionData.planTier as PlanTier,
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
+        trialEnd: subscriptionData.trialEnd,
+      }
+    : null;
+
   return NextResponse.json<MeResponse>({
     user: userFromDb,
     currentPlan,
+    subscription,
   });
 });
 

@@ -172,7 +172,7 @@ export const createSubscriptionCheckout = async (params: {
       tax_id: taxId,
       //   NON-USD subscriptions are not supported yet
       trial_period_days: trialPeriodDays ? trialPeriodDays : undefined,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/app/subscribe/success?provider=dodo`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/app/subscriptions/success?provider=dodo`,
     });
 
     return {

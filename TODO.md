@@ -71,30 +71,30 @@
 ---
 
 ## Story 3: billing-lifecycle-start-cancel-resume
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETE
 
 ### Tasks:
 
-- [ ] **TASK-3.1:** Create checkout initiation endpoint
+- [x] **TASK-3.1:** Create checkout initiation endpoint
   - File: `src/app/api/app/subscriptions/checkout/route.ts`
   - Method: POST
   - Input: { planTier: 'starter' }
   - Output: { checkoutUrl: string }
 
-- [ ] **TASK-3.2:** Create checkout success handler
+- [x] **TASK-3.2:** Create checkout success handler
   - File: `src/app/api/app/subscriptions/success/route.ts`
   - Handle: Redirect from Dodo after payment
   - Action: Verify payment, redirect to /app
 
-- [ ] **TASK-3.3:** Implement cancel flow
+- [x] **TASK-3.3:** Implement cancel flow
   - Verify: POST /api/app/subscriptions/cancel works
   - Test: User can cancel, keeps features until period end
 
-- [ ] **TASK-3.4:** Implement resume flow
+- [x] **TASK-3.4:** Implement resume flow
   - Verify: POST /api/app/subscriptions/resume works
   - Test: User can resume before period ends
 
-- [ ] **TASK-3.5:** Add subscription to /api/app/me response
+- [x] **TASK-3.5:** Add subscription to /api/app/me response
   - File: `src/app/api/app/me/route.ts`
   - Add: subscription object to response
   - Include: status, planTier, currentPeriodEnd
