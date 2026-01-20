@@ -21,7 +21,6 @@
       "Read(.env.production)",
       "Read(.env.local)",
       "Write(.env)",
-      "Bash(rm -rf:*)",
       "Bash(npm publish:*)"
     ]
   },
