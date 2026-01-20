@@ -3,6 +3,7 @@
 import { appConfig } from "@/lib/config";
 import Link from "next/link";
 import { UserButton } from "@/components/layout/user-button";
+import { PlanBadge } from "@/components/ui/plan-badge";
 
 export function AppHeader() {
   return (
@@ -10,10 +11,11 @@ export function AppHeader() {
       <div className="mx-auto max-w-(--breakpoint-xl) px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Link href="/app" className="flex items-center space-x-2">
               <span className="text-lg font-bold">{appConfig.projectName}</span>
             </Link>
+            <PlanBadge variant="compact" />
           </div>
 
           {/* User Menu */}

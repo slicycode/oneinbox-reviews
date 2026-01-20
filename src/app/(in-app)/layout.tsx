@@ -2,6 +2,7 @@
 
 import { Footer } from "@/components/layout/footer";
 import { AppHeader } from "@/components/layout/app-header";
+import { TrialBanner } from "@/components/ui/plan-badge";
 import React from "react";
 import useUser from "@/lib/users/useUser";
 
@@ -89,7 +90,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen gap-4">
       <AppHeader />
-      <div className="grow p-4 sm:p-2 max-w-7xl mx-auto w-full">{children}</div>
+      <div className="grow p-4 sm:p-2 max-w-7xl mx-auto w-full">
+        <TrialBanner className="mb-4" />
+        {children}
+      </div>
       <Footer />
     </div>
   );
