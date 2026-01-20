@@ -1,5 +1,5 @@
 import { appConfig } from "@/lib/config";
-import { WebPageJsonLd } from "next-seo";
+import { JsonLd, createWebPageJsonLd } from "@/components/json-ld";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,20 +31,17 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const jsonLd = createWebPageJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/about`,
+    title: `About Us | ${appConfig.projectName}`,
+    description: "Learn more about our company, mission, and values.",
+    publisherName: appConfig.projectName,
+    publisherUrl: process.env.NEXT_PUBLIC_APP_URL,
+  });
+
   return (
     <article className="py-16 md:py-32">
-      <WebPageJsonLd
-        useAppDir
-        id={`${process.env.NEXT_PUBLIC_APP_URL}/about`}
-        title={`About Us | ${appConfig.projectName}`}
-        description="Learn more about our company, mission, and values."
-        isAccessibleForFree={true}
-        publisher={{
-          "@type": "Organization",
-          name: appConfig.projectName,
-          url: process.env.NEXT_PUBLIC_APP_URL,
-        }}
-      />
+      <JsonLd data={jsonLd} />
       <div className="mx-auto max-w-5xl px-6">
         {/* Hero Section */}
         <header className="space-y-6 text-center mb-16 md:mb-24">
@@ -99,4 +96,4 @@ export default function AboutPage() {
       </div>
     </article>
   );
-} 
+}

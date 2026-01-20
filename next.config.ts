@@ -33,9 +33,13 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     authInterrupts: true,
-  }
+  },
 };
 
 const withMDX = createMDX();
+const config = withMDX(nextConfig);
 
-export default withMDX(nextConfig);
+// Export without Sentry wrapper - Sentry is initialized via instrumentation.ts
+// The withSentryConfig wrapper causes useContext errors during prerendering
+// in Next.js 16 when combined with certain dependencies.
+export default config;

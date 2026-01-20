@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import WaitlistForm from "./waitlist-form";
-import { WebPageJsonLd } from "next-seo";
+import { JsonLd, createWebPageJsonLd } from "@/components/json-ld";
 import { appConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
@@ -34,6 +34,14 @@ export const metadata: Metadata = {
 };
 
 export default function JoinWaitlistPage() {
+  const jsonLd = createWebPageJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/join-waitlist`,
+    title: "Join Waitlist",
+    description: "Join our waitlist to get early access to our platform.",
+    publisherName: appConfig.projectName,
+    publisherUrl: process.env.NEXT_PUBLIC_APP_URL,
+  });
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden relative py-16 md:py-32">
       <AnimatedGridPattern
@@ -46,18 +54,7 @@ export default function JoinWaitlistPage() {
           "inset-x-0 inset-y-[-30%] h-[150%] skew-y-12"
         )}
       />
-      <WebPageJsonLd
-        useAppDir
-        id={`${process.env.NEXT_PUBLIC_APP_URL}/join-waitlist`}
-        title="Join Waitlist"
-        description="Join our waitlist to get early access to our platform."
-        isAccessibleForFree={true}
-        publisher={{
-          "@type": "Organization",
-          name: appConfig.projectName,
-          url: process.env.NEXT_PUBLIC_APP_URL,
-        }}
-      />
+      <JsonLd data={jsonLd} />
       <div className="container max-w-md px-6 z-50">
         <div className="bg-background">
           <div className="rounded-2xl bg-card border p-8 md:p-10 shadow-sm">

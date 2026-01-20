@@ -5,7 +5,7 @@ import { Tag } from "lucide-react";
 import { Metadata } from "next";
 import { CTA2 } from "@/components/website/cta-2";
 import { appConfig } from "@/lib/config";
-import { WebPageJsonLd, BreadcrumbJsonLd } from "next-seo";
+import { JsonLd, createWebPageJsonLd, createBreadcrumbJsonLd } from "@/components/json-ld";
 import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
@@ -43,35 +43,23 @@ export default async function BlogListPage() {
     return notFound();
   }
 
+  const webPageJsonLd = createWebPageJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/blog`,
+    title: `Blog | ${appConfig.projectName}`,
+    description: `Discover how to use ${appConfig.projectName}`,
+    publisherName: appConfig.projectName,
+    publisherUrl: process.env.NEXT_PUBLIC_APP_URL,
+  });
+
+  const breadcrumbJsonLd = createBreadcrumbJsonLd([
+    { name: "Home", item: process.env.NEXT_PUBLIC_APP_URL || "" },
+    { name: "Blog", item: `${process.env.NEXT_PUBLIC_APP_URL}/blog` },
+  ]);
+
   return (
     <article className="py-16 md:py-32">
-      <WebPageJsonLd
-        useAppDir
-        id={`${process.env.NEXT_PUBLIC_APP_URL}/blog`}
-        title={`Blog | ${appConfig.projectName}`}
-        description={`Discover how to use ${appConfig.projectName}`}
-        isAccessibleForFree={true}
-        publisher={{
-          "@type": "Organization",
-          name: appConfig.projectName,
-          url: process.env.NEXT_PUBLIC_APP_URL,
-        }}
-      />
-      <BreadcrumbJsonLd
-        useAppDir
-        itemListElements={[
-          {
-            position: 1,
-            name: "Home",
-            item: process.env.NEXT_PUBLIC_APP_URL,
-          },
-          {
-            position: 2,
-            name: "Blog",
-            item: `${process.env.NEXT_PUBLIC_APP_URL}/blog`,
-          },
-        ]}
-      />
+      <JsonLd data={webPageJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
 
       <div className="mx-auto max-w-6xl px-6">
         {/* Hero Section */}

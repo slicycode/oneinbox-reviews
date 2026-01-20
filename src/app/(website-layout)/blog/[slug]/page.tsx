@@ -8,7 +8,7 @@ import { Metadata } from "next";
 import { TableOfContents } from "@/components/table-of-contents";
 import { cn } from "@/lib/utils";
 import { CTA2 } from "@/components/website/cta-2";
-import { WebPageJsonLd, ArticleJsonLd, BreadcrumbJsonLd } from "next-seo";
+import { JsonLd, createWebPageJsonLd, createArticleJsonLd, createBreadcrumbJsonLd } from "@/components/json-ld";
 import { appConfig } from "@/lib/config";
 
 interface Props {
@@ -75,55 +75,37 @@ async function BlogDetailPage({ params }: Props) {
 
   const relatedBlogs = await getRelatedBlogs(slug, blog.frontmatter.tags);
 
+  const webPageJsonLd = createWebPageJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}`,
+    title: blog.frontmatter.title,
+    description: blog.frontmatter.description || "",
+    publisherName: appConfig.projectName,
+    publisherUrl: process.env.NEXT_PUBLIC_APP_URL,
+  });
+
+  const articleJsonLd = createArticleJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}`,
+    title: blog.frontmatter.title,
+    description: blog.frontmatter.description || "",
+    images: [blog.frontmatter.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/images/og.png`],
+    datePublished: blog.frontmatter.createdDate,
+    dateModified: blog.frontmatter.createdDate,
+    authorName: appConfig.projectName,
+    publisherName: appConfig.projectName,
+    publisherLogo: `${process.env.NEXT_PUBLIC_APP_URL}/images/og.png`,
+  });
+
+  const breadcrumbJsonLd = createBreadcrumbJsonLd([
+    { name: "Home", item: process.env.NEXT_PUBLIC_APP_URL || "" },
+    { name: "Blog", item: `${process.env.NEXT_PUBLIC_APP_URL}/blog` },
+    { name: blog.frontmatter.title, item: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}` },
+  ]);
+
   return (
     <article className="py-16 md:py-32">
-      <WebPageJsonLd
-        useAppDir
-        id={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}`}
-        title={blog.frontmatter.title}
-        description={blog.frontmatter.description || ""}
-        lastUpdated={blog.frontmatter.createdDate}
-        isAccessibleForFree={true}
-        publisher={{
-          "@type": "Organization",
-          name: appConfig.projectName,
-          url: process.env.NEXT_PUBLIC_APP_URL,
-        }}
-      />
-      <ArticleJsonLd
-        useAppDir
-        type="BlogPosting"
-        url={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}`}
-        title={blog.frontmatter.title}
-        images={[blog.frontmatter.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/images/og.png`]}
-        datePublished={blog.frontmatter.createdDate}
-        dateModified={blog.frontmatter.createdDate}
-        authorName={appConfig.projectName}
-        description={blog.frontmatter.description || ""}
-        isAccessibleForFree={true}
-        publisherName={appConfig.projectName}
-        publisherLogo={`${process.env.NEXT_PUBLIC_APP_URL}/images/og.png`}
-      />
-      <BreadcrumbJsonLd
-        useAppDir
-        itemListElements={[
-          {
-            position: 1,
-            name: "Home",
-            item: process.env.NEXT_PUBLIC_APP_URL,
-          },
-          {
-            position: 2,
-            name: "Blog",
-            item: `${process.env.NEXT_PUBLIC_APP_URL}/blog`,
-          },
-          {
-            position: 3,
-            name: blog.frontmatter.title,
-            item: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${blog.slug}`,
-          },
-        ]}
-      />
+      <JsonLd data={webPageJsonLd} />
+      <JsonLd data={articleJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
 
       <div className="mx-auto max-w-6xl px-6">
         {/* Breadcrumbs */}

@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { appConfig } from "@/lib/config";
-import { WebPageJsonLd } from "next-seo";
+import { JsonLd, createWebPageJsonLd } from "@/components/json-ld";
 
 export async function generateMetadata(): Promise<Metadata> {
   const policy = await getPolicyBySlug("terms");
@@ -42,30 +42,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function TermsPage() {
   const policy = await getPolicyBySlug("terms");
-  
+
   if (!policy) {
     notFound();
   }
 
+  const jsonLd = createWebPageJsonLd({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/terms`,
+    title: policy.frontmatter.title,
+    description: policy.frontmatter.description || "",
+    publisherName: appConfig.projectName,
+    publisherUrl: process.env.NEXT_PUBLIC_APP_URL,
+  });
+
   return (
     <>
-      <WebPageJsonLd
-        useAppDir
-        id={`${process.env.NEXT_PUBLIC_APP_URL}/terms`}
-        title={policy.frontmatter.title}
-        description={policy.frontmatter.description}
-        lastUpdated={policy.frontmatter.lastUpdated}
-        isAccessibleForFree={true}
-        publisher={{
-          "@type": "Organization",
-          name: appConfig.projectName,
-          url: process.env.NEXT_PUBLIC_APP_URL,
-        }}
-        about={{
-          "@type": "Thing",
-          name: "Terms of Service",
-        }}
-      />
+      <JsonLd data={jsonLd} />
       <header className="mb-12 space-y-4 text-center">
         <h1 className="text-4xl font-semibold md:text-5xl">{policy.frontmatter.title}</h1>
         <p className="text-sm text-muted-foreground">
