@@ -28,6 +28,8 @@ import { isActiveSubscription } from "@/lib/subscriptions/state-machine";
 import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
 import { getPlanConfig, type PlanTier } from "@/lib/plans/config";
 import { formatReviewCount, formatReviewLimit } from "@/lib/plans/format";
+import { getOnboardingProgress } from "@/lib/onboarding/get-progress";
+import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -178,8 +180,16 @@ export default async function DashboardPage() {
 
   const isFreePlan = currentTier === "free";
 
+  // Get onboarding progress
+  const onboardingProgressData = await getOnboardingProgress(userId);
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Onboarding Checklist */}
+      {!onboardingProgressData.dismissed && (
+        <OnboardingChecklist progress={onboardingProgressData} />
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
