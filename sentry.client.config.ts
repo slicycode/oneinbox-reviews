@@ -6,6 +6,9 @@ Sentry.init({
   // Adjust sample rate in production
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
+  // Profile 10% of traced transactions in production
+  profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
   // Session Replay - only in production
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
@@ -19,6 +22,11 @@ Sentry.init({
   integrations:
     typeof window !== "undefined"
       ? [
+          // Browser tracing for page load and navigation performance
+          Sentry.browserTracingIntegration({
+            enableInp: true, // Interaction to Next Paint
+          }),
+          // Session replay for debugging
           Sentry.replayIntegration({
             maskAllText: true,
             blockAllMedia: true,
