@@ -41,9 +41,15 @@ const withSuperAdminAuthRequired = (handler: WithManagerHandler) => {
       );
     }
 
-    if (
-      !process.env.SUPER_ADMIN_EMAILS?.split(",").includes(session.user?.email)
-    ) {
+    // Normalize emails: trim whitespace and lowercase for comparison
+    const adminEmails = process.env.SUPER_ADMIN_EMAILS
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const userEmail = session.user?.email?.toLowerCase() ?? "";
+
+    if (!adminEmails.includes(userEmail)) {
       return NextResponse.json(
         {
           error: "Unauthorized",

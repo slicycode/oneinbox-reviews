@@ -1,5 +1,13 @@
 import { z } from 'zod'
 
+// Strong password schema with complexity requirements
+const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+
 export const signUpRequestSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
@@ -7,7 +15,7 @@ export const signUpRequestSchema = z.object({
 
 export const signUpWithPasswordSchema = signUpRequestSchema
   .extend({
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -17,7 +25,7 @@ export const signUpWithPasswordSchema = signUpRequestSchema
 
 export const setPasswordSchema = z
   .object({
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -36,7 +44,7 @@ export const resetPasswordRequestSchema = z.object({
 
 export const resetPasswordConfirmSchema = z
   .object({
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

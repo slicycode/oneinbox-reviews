@@ -20,9 +20,21 @@ const cronAuthRequired = (handler: CronHandler) => {
     const CRON_USERNAME = process.env.CRON_USERNAME;
     const CRON_PASSWORD = process.env.CRON_PASSWORD;
 
-    // Skip authentication if credentials are not set in environment
+    // In production, require credentials to be set (fail closed)
     if (!CRON_USERNAME || !CRON_PASSWORD) {
-      console.warn("CRON_USERNAME or CRON_PASSWORD not set - skipping authentication");
+      if (process.env.NODE_ENV === "production") {
+        console.error("CRON_USERNAME or CRON_PASSWORD not configured in production");
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Server configuration error",
+            error: "Cron authentication not configured",
+          },
+          { status: 500 }
+        );
+      }
+      // Only skip auth in development
+      console.warn("CRON_USERNAME or CRON_PASSWORD not set - skipping authentication (dev only)");
       return await handler(req, context);
     }
 

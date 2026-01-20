@@ -413,8 +413,16 @@ async function handler(req: NextRequest) {
       data = event.data;
       eventType = event.type;
     } else {
-      // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-      // retrieve the event data directly from the request body.
+      // In production, require webhook signature verification (fail closed)
+      if (process.env.NODE_ENV === "production") {
+        console.error("STRIPE_WEBHOOK_SECRET not configured in production");
+        return NextResponse.json(
+          { error: "Webhook secret not configured" },
+          { status: 500 }
+        );
+      }
+      // Development fallback - allow unsigned webhooks for testing
+      console.warn("Processing unsigned Stripe webhook (dev only)");
       const body = await req.json();
       data = body.data;
       eventType = body.type;

@@ -235,7 +235,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
+      // Removed allowDangerousEmailAccountLinking for security - prevents automatic account linking
+      // which could lead to account takeover if attacker creates password account with victim's email
       authorization: {
         params: {
           scope: googleScopes,
