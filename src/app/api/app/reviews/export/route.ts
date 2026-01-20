@@ -5,6 +5,7 @@ import { reviews } from "@/db/schema/reviews";
 import { reviewExports } from "@/db/schema/review-exports";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { reviewFiltersSchema } from "@/lib/validations/review-filters.schema";
+import { enforceFeatureAccess } from "@/lib/subscriptions/api-enforcement";
 
 const sanitizeCsvValue = (value: string) => {
   const stripped = value.replace(/^[\t\r\n ]+/, "");
@@ -33,6 +34,24 @@ export const GET = withAuthRequired(async (req, context) => {
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
 
+  // Check if user is trying to use advanced filters (requires Starter plan)
+  const hasFilters =
+    filters.ratingMin !== undefined ||
+    filters.ratingMax !== undefined ||
+    filters.dateFrom !== undefined ||
+    filters.dateTo !== undefined ||
+    filters.query !== undefined;
+
+  if (hasFilters) {
+    const enforcementError = await enforceFeatureAccess(
+      context.session.user.id,
+      "advanced_filters",
+    );
+    if (enforcementError) {
+      return enforcementError;
+    }
+  }
+
   const conditions = [eq(reviews.userId, context.session.user.id)];
   if (filters.ratingMin !== undefined) {
     conditions.push(gte(reviews.rating, filters.ratingMin));
@@ -49,7 +68,7 @@ export const GET = withAuthRequired(async (req, context) => {
   if (filters.query) {
     const term = `%${filters.query}%`;
     conditions.push(
-      sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`
+      sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`,
     );
   }
 
