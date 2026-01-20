@@ -1,18 +1,12 @@
 import withAuthRequired from "@/lib/auth/withAuthRequired";
 import createS3UploadFields from "@/lib/s3/createS3UploadFields";
 import { NextResponse } from "next/server";
-
-interface UploadAvatarRequest {
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-}
+import { uploadAvatarSchema } from "@/lib/validations/file-upload.schema";
 
 export const POST = withAuthRequired(async (req, context) => {
   try {
     const { session } = context;
-    const { fileName, fileType, fileSize }: UploadAvatarRequest =
-      await req.json();
+    const body = await req.json();
 
     if (
       !process.env.AWS_BUCKET_NAME ||
@@ -29,30 +23,17 @@ export const POST = withAuthRequired(async (req, context) => {
       );
     }
 
-    // Validate input
-    if (!fileName || !fileType || !fileSize) {
+    // Validate input with Zod schema
+    const validation = uploadAvatarSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields: fileName, fileType, fileSize" },
+        { error: "Invalid input", details: validation.error.errors },
         { status: 400 }
       );
     }
 
-    // Validate file type (only allow images for avatars)
-    if (!fileType.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Only image files are allowed for avatars" },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size (max 5MB for avatars)
+    const { fileName, fileType, fileSize } = validation.data;
     const maxSize = 5 * 1024 * 1024; // 5MB
-    if (fileSize > maxSize) {
-      return NextResponse.json(
-        { error: "File size too large. Maximum allowed size is 5MB" },
-        { status: 400 }
-      );
-    }
 
     // Extract file extension
     const fileExtension = fileName.split(".").pop()?.toLowerCase() || "jpg";

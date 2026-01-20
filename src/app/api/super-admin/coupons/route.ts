@@ -4,14 +4,35 @@ import { db } from "@/db";
 import { coupons } from "@/db/schema/coupons";
 import { desc, eq, like, sql, and, isNull, isNotNull } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { z } from "zod";
+
+// Validation schemas
+const couponQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(10),
+  search: z.string().max(100).default(""),
+  status: z.enum(["all", "used", "unused", "expired"]).default("all"),
+});
+
+const generateCouponsSchema = z.object({
+  prefix: z.string().min(1).max(20).regex(/^[A-Z0-9]+$/i, "Prefix must be alphanumeric"),
+  count: z.number().int().positive().max(1000, "Cannot generate more than 1000 coupons at once"),
+});
 
 export const GET = withSuperAdminAuthRequired(async (req) => {
   try {
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") || "all";
+    const queryValidation = couponQuerySchema.safeParse({
+      page: searchParams.get("page") ?? 1,
+      limit: searchParams.get("limit") ?? 10,
+      search: searchParams.get("search") ?? "",
+      status: searchParams.get("status") ?? "all",
+    });
+
+    const { page, limit, search, status } = queryValidation.success
+      ? queryValidation.data
+      : { page: 1, limit: 10, search: "", status: "all" as const };
+
     const offset = (page - 1) * limit;
 
     const conditions = [];
@@ -63,14 +84,18 @@ export const GET = withSuperAdminAuthRequired(async (req) => {
 
 export const POST = withSuperAdminAuthRequired(async (req) => {
   try {
-    const { prefix, count } = await req.json();
+    const body = await req.json();
 
-    if (!prefix || !count || count <= 0) {
+    // Validate input with Zod schema
+    const validation = generateCouponsSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Invalid parameters" },
+        { error: "Invalid input", details: validation.error.errors },
         { status: 400 }
       );
     }
+
+    const { prefix, count } = validation.data;
 
     const codes = Array.from({ length: count }, () => {
       const uniquePart = nanoid(8).toUpperCase();

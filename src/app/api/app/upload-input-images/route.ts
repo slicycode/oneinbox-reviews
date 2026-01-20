@@ -1,34 +1,23 @@
 import withAuthRequired from "@/lib/auth/withAuthRequired";
 import createS3UploadFields from "@/lib/s3/createS3UploadFields";
 import { NextResponse } from "next/server";
-
-interface UploadImageRequest {
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-}
+import { uploadImageSchema } from "@/lib/validations/file-upload.schema";
 
 export const POST = withAuthRequired(async (req, context) => {
   try {
     const { session } = context;
-    const { fileName, fileType, fileSize }: UploadImageRequest =
-      await req.json();
+    const body = await req.json();
 
-    // Basic validation
-    if (!fileName || !fileType || !fileSize) {
+    // Validate input with Zod schema
+    const validation = uploadImageSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields: fileName, fileType, fileSize" },
+        { error: "Invalid input", details: validation.error.errors },
         { status: 400 }
       );
     }
 
-    // Validate file type (only allow images)
-    if (!fileType.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Only image files are allowed" },
-        { status: 400 }
-      );
-    }
+    const { fileName, fileType, fileSize } = validation.data;
 
     // Extract file extension
     const fileExtension = fileName.split(".").pop()?.toLowerCase() || "jpg";
