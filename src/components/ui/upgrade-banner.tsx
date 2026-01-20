@@ -3,10 +3,10 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Sparkles, X } from "lucide-react";
-import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { UpgradeModal } from "./upgrade-modal";
 
 const upgradeBannerVariants = cva(
   "relative flex items-center gap-3 rounded-lg border px-4 py-3 text-sm",
@@ -68,9 +68,13 @@ function UpgradeBanner({
         <p className="text-sm">{message || defaultMessage}</p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <Button asChild size="sm" variant="default">
-          <Link href="/app/settings/billing">Upgrade</Link>
-        </Button>
+        <UpgradeModal
+          trigger={
+            <Button size="sm" variant="default">
+              Upgrade
+            </Button>
+          }
+        />
         {dismissible && (
           <Button
             variant="ghost"
