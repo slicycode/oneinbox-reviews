@@ -4,7 +4,16 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, User, Save } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  AlertTriangle,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Mail,
+} from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import useUser from "@/lib/users/useUser";
@@ -21,7 +30,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Form,
   FormControl,
@@ -35,12 +54,23 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { S3Uploader } from "@/components/ui/s3-uploader";
 
+const DELETE_CONFIRMATION_TEXT = "delete my account";
+
+const dataToBeDeleted = [
+  { label: "All your reviews and review data", deleted: true },
+  { label: "Email alert settings", deleted: true },
+  { label: "Connected integrations (Google)", deleted: true },
+  { label: "Profile information", deleted: true },
+  { label: "Subscription (if active, will be cancelled)", deleted: true },
+];
+
 export default function ProfileSettingsPage() {
   const { user, isLoading, mutate } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const form = useForm<ProfileUpdateValues>({
     resolver: zodResolver(profileUpdateSchema),
@@ -95,10 +125,8 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const deleteConfirmationText = "delete my account";
-
   const handleDeleteAccount = async () => {
-    if (deleteConfirmation !== deleteConfirmationText) {
+    if (deleteConfirmation !== DELETE_CONFIRMATION_TEXT) {
       toast.error("Please enter the correct confirmation text");
       return;
     }
@@ -116,7 +144,10 @@ export default function ProfileSettingsPage() {
         throw new Error(errorData.error || "Failed to delete account");
       }
 
-      toast.success("Account deletion requested");
+      toast.success(
+        "Account deletion requested. You will be signed out shortly."
+      );
+      setDeleteDialogOpen(false);
       await signOut({ callbackUrl: "/sign-in" });
     } catch (error) {
       console.error("Account deletion error:", error);
@@ -124,6 +155,15 @@ export default function ProfileSettingsPage() {
         error instanceof Error ? error.message : "Failed to delete account"
       );
       setIsDeleting(false);
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    if (!isDeleting) {
+      setDeleteDialogOpen(open);
+      if (!open) {
+        setDeleteConfirmation("");
+      }
     }
   };
 
@@ -142,6 +182,8 @@ export default function ProfileSettingsPage() {
       .map((n) => n[0])
       .join("")
       .toUpperCase() || "U";
+
+  const canDelete = deleteConfirmation === DELETE_CONFIRMATION_TEXT;
 
   return (
     <div className="flex flex-col gap-6">
@@ -261,47 +303,143 @@ export default function ProfileSettingsPage() {
       {/* Danger Zone */}
       <Card className="border-destructive/50">
         <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          </div>
           <CardDescription>
             Irreversible actions that affect your account.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Alert variant="destructive">
-            <AlertTitle>Delete Account</AlertTitle>
-            <AlertDescription>
-              This action cannot be undone. Your access will be revoked
-              immediately and all your data will be permanently deleted.
-            </AlertDescription>
-          </Alert>
-          <div className="flex flex-col gap-2">
-            <Label>
-              Type &quot;{deleteConfirmationText}&quot; to confirm
-            </Label>
-            <Input
-              value={deleteConfirmation}
-              onChange={(event) => setDeleteConfirmation(event.target.value)}
-              placeholder={deleteConfirmationText}
-            />
+        <CardContent>
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+            <div className="flex items-start gap-3">
+              <Trash2 className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-destructive">Delete Account</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Permanently delete your account and all associated data. This
+                  action cannot be undone after the grace period.
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="border-t pt-6">
-          <Button
-            variant="destructive"
-            onClick={handleDeleteAccount}
-            disabled={
-              isDeleting || deleteConfirmation !== deleteConfirmationText
-            }
-          >
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Deleting...
-              </>
-            ) : (
-              "Delete Account"
-            )}
-          </Button>
+          <AlertDialog open={deleteDialogOpen} onOpenChange={handleDialogClose}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="sm:max-w-lg">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Delete Your Account?
+                </AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-4">
+                    <p>
+                      This will permanently delete your account and all
+                      associated data.
+                    </p>
+
+                    {/* Grace Period Notice */}
+                    <div className="flex items-start gap-3 rounded-lg border bg-amber-500/10 border-amber-500/30 p-3">
+                      <Clock className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-600">
+                          30-Day Grace Period
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          You&apos;ll be signed out immediately, but your data
+                          will be retained for 30 days. Contact support within
+                          this period to recover your account.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* What will be deleted */}
+                    <div className="rounded-lg border p-3">
+                      <p className="text-sm font-medium mb-2">
+                        Data that will be deleted:
+                      </p>
+                      <ul className="space-y-1.5">
+                        {dataToBeDeleted.map((item, index) => (
+                          <li
+                            key={index}
+                            className="flex items-center gap-2 text-sm text-muted-foreground"
+                          >
+                            {item.deleted ? (
+                              <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                            )}
+                            {item.label}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Email Notice */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span>
+                        A confirmation email will be sent to {user?.email}
+                      </span>
+                    </div>
+
+                    {/* Confirmation Input */}
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-confirmation" className="text-sm">
+                        Type{" "}
+                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded">
+                          {DELETE_CONFIRMATION_TEXT}
+                        </span>{" "}
+                        to confirm:
+                      </Label>
+                      <Input
+                        id="delete-confirmation"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        placeholder={DELETE_CONFIRMATION_TEXT}
+                        className={
+                          canDelete
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        autoComplete="off"
+                      />
+                    </div>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={!canDelete || isDeleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Yes, Delete My Account
+                    </>
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardFooter>
       </Card>
     </div>
