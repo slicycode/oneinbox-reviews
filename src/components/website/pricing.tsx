@@ -200,7 +200,7 @@ export function WebsitePricing() {
               </li>
             </ul>
             <Button className="w-full mt-8" asChild>
-              <Link href="/join-waitlist">Join B2B Waitlist</Link>
+              <Link href="/contact">Contact Sales</Link>
             </Button>
           </div>
         </div>
