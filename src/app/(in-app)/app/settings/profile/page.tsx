@@ -13,6 +13,7 @@ import {
   XCircle,
   Clock,
   Mail,
+  Download,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -55,6 +56,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { S3Uploader } from "@/components/ui/s3-uploader";
 
 const DELETE_CONFIRMATION_TEXT = "delete my account";
+
+const handleDataExport = async () => {
+  try {
+    const response = await fetch("/api/app/data-export");
+    if (!response.ok) {
+      throw new Error("Failed to export data");
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `oneinbox-data-export-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    toast.success("Your data has been exported successfully!");
+  } catch {
+    toast.error("Failed to export your data. Please try again.");
+  }
+};
 
 const dataToBeDeleted = [
   { label: "All your reviews and review data", deleted: true },
@@ -298,6 +320,28 @@ export default function ProfileSettingsPage() {
             </span>
           </div>
         </CardContent>
+      </Card>
+
+      {/* Data Export (GDPR) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Data</CardTitle>
+          <CardDescription>
+            Download a copy of all your personal data (GDPR Data Portability).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Export includes your profile information, reviews, settings, and
+            subscription data in JSON format.
+          </p>
+        </CardContent>
+        <CardFooter className="border-t pt-6">
+          <Button variant="outline" onClick={handleDataExport}>
+            <Download className="mr-2 h-4 w-4" />
+            Export My Data
+          </Button>
+        </CardFooter>
       </Card>
 
       {/* Danger Zone */}
