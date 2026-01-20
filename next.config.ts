@@ -3,6 +3,11 @@ import { createMDX } from "fumadocs-mdx/next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Serve modern image formats for better compression
+    formats: ["image/avif", "image/webp"],
+    // Responsive image breakpoints
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
@@ -20,6 +25,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: `${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`,
+      },
+      // Allow Google profile images
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
       },
     ],
   },
