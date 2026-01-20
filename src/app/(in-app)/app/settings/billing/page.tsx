@@ -14,11 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { getPlanConfig, plansConfig, type PlanTier } from "@/lib/plans/config";
 import { isActiveSubscription, getStatusLabel } from "@/lib/subscriptions/state-machine";
 import { BillingActions } from "./billing-actions";
+import { UpgradeButton } from "./upgrade-button";
 
 export default async function BillingSettingsPage() {
   const session = await auth();
@@ -220,13 +220,11 @@ export default async function BillingSettingsPage() {
             </div>
           </CardContent>
           <CardFooter className="flex gap-4">
-            <Button asChild>
-              <Link href="/app/subscribe">
-                Upgrade for ${(plansConfig.starter.pricing.monthly.price / 100).toFixed(0)}/mo
-              </Link>
-            </Button>
+            <UpgradeButton>
+              Upgrade for ${(plansConfig.starter.pricing.monthly.price / 100).toFixed(0)}/mo
+            </UpgradeButton>
             <Button variant="outline" asChild>
-              <Link href="/app/billing/profile">Update Billing Info</Link>
+              <a href="/app/billing/profile">Update Billing Info</a>
             </Button>
           </CardFooter>
         </Card>

@@ -16,7 +16,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import type { PlanTier } from "@/lib/plans/config";
 
 interface BillingActionsProps {
@@ -32,6 +31,42 @@ export function BillingActions({
 }: BillingActionsProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleUpgrade = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/app/subscriptions/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planTier: "starter",
+          billingInterval: "monthly",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.error?.code === "BILLING_PROFILE_REQUIRED") {
+          toast.error("Please complete your billing profile first");
+          router.push("/app/billing/profile");
+          return;
+        }
+        toast.error(data.error?.message || "Failed to start checkout");
+        return;
+      }
+
+      // Redirect to Dodo checkout
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -84,8 +119,15 @@ export function BillingActions({
   // Free user - show upgrade button
   if (currentTier === "free" || !hasActiveSubscription) {
     return (
-      <Button asChild>
-        <Link href="/app/subscribe">Upgrade to Starter</Link>
+      <Button onClick={handleUpgrade} disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            Loading...
+          </>
+        ) : (
+          "Upgrade to Starter"
+        )}
       </Button>
     );
   }
