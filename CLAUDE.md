@@ -1,50 +1,43 @@
-# Claude Code Instructions
+# OneInbox Reviews - Claude Code Instructions
 
-## Before Starting Any Task
+## Project Overview
 
-1. Read `TASKS.md` to understand current sprint state
-2. Find the next unchecked task in the current story
-3. Implement ONLY that single task
-4. Update `TASKS.md` when done
+OneInbox Reviews is a SaaS platform for managing Google Business Profile reviews. It uses DodoPayments for subscriptions with Free and Starter tiers.
 
 ## File Patterns
 
-- Schemas: `src/db/schema/*.ts`
-- Services: `src/lib/<feature>/*.ts`
-- API routes: `src/app/api/app/<resource>/route.ts`
-- Components: `src/components/ui/*.tsx`
+- **Database Schemas:** `src/db/schema/*.ts`
+- **Services/Logic:** `src/lib/<feature>/*.ts`
+- **API Routes:** `src/app/api/app/<resource>/route.ts`
+- **UI Components:** `src/components/ui/*.tsx`
+- **Feature Components:** `src/features/<feature>/*.tsx`
+- **Pages:** `src/app/(in-app)/app/**/*.tsx`
 
 ## Naming Conventions
 
-- Database: snake_case
-- Files: kebab-case
-- Functions: camelCase
-- REST endpoints: plural nouns
+- Database columns: `snake_case`
+- File names: `kebab-case`
+- Functions/variables: `camelCase`
+- React components: `PascalCase`
+- REST endpoints: plural nouns (`/reviews`, `/subscriptions`)
 
-## Commit Messages
+## Key Technical Details
 
-Format: `feat(sprint-X): TASK-X.X brief description`
-
-Example: `feat(sprint-2): TASK-2.1 create plan configuration`
-
-## When Blocked
-
-1. Add `⚠️ BLOCKED: reason` under the task
-2. Move to next unblocked task
-3. Flag for human review
+- **Framework:** Next.js 16 (App Router)
+- **Database:** PostgreSQL with Drizzle ORM
+- **Auth:** NextAuth.js with Google OAuth
+- **Payments:** DodoPayments
+- **Styling:** Tailwind CSS + shadcn/ui
 
 ## Task Management
 
-Primary source: `TASKS.md`
-Visual sync: Linear (via MCP)
+Tasks are tracked in Linear. When working on features:
+1. Check Linear for assigned tasks
+2. Create feature branches from `main`
+3. Use conventional commits: `feat:`, `fix:`, `chore:`
 
-When completing a task:
-1. Update TASKS.md: `- [x] TASK-X.X`
-2. Call Linear MCP: `linear_update_issue` with status "Done"
+## Important Files
 
-When starting a task:
-1. Read TASKS.md for next task
-2. Call Linear MCP: `linear_update_issue` with status "In Progress"
-3. Implement the task
-
-This keeps both systems in sync.
+- `src/lib/plans/config.ts` - Plan definitions and limits
+- `src/lib/subscriptions/access-control.ts` - Feature gating logic
+- `src/db/schema/` - All database schemas

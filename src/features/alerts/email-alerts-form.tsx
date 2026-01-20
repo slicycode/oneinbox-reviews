@@ -58,6 +58,10 @@ export function EmailAlertsForm({
   }, [form, initialEnabled, initialThreshold, initialPaused]);
 
   const onSubmit = async (values: AlertSettingsFormValues) => {
+    if (isFreePlan) {
+      toast.error("Email alerts require a Starter plan");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/app/alerts/settings", {
@@ -111,10 +115,11 @@ export function EmailAlertsForm({
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFreePlan}
                 />
               </FormControl>
               <div className="flex flex-col gap-1 leading-none">
-                <FormLabel>Email alerts for new reviews</FormLabel>
+                <FormLabel className={isFreePlan ? "text-muted-foreground" : ""}>Email alerts for new reviews</FormLabel>
                 <FormDescription>
                   Receive an email whenever new reviews are ingested.
                 </FormDescription>
@@ -131,10 +136,11 @@ export function EmailAlertsForm({
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFreePlan}
                 />
               </FormControl>
               <div className="flex flex-col gap-1 leading-none">
-                <FormLabel>Pause alerts</FormLabel>
+                <FormLabel className={isFreePlan ? "text-muted-foreground" : ""}>Pause alerts</FormLabel>
                 <FormDescription>
                   Temporarily stop sending any alert emails.
                 </FormDescription>
@@ -147,7 +153,7 @@ export function EmailAlertsForm({
           name="negativeReviewThreshold"
           render={({ field }) => (
             <FormItem className="flex flex-col gap-2 rounded-md border p-4">
-              <FormLabel>Negative review threshold</FormLabel>
+              <FormLabel className={isFreePlan ? "text-muted-foreground" : ""}>Negative review threshold</FormLabel>
               <FormDescription>
                 Set to 5 to alert on every new review. Lower values only alert on
                 negative reviews (1 = lowest).
@@ -159,12 +165,13 @@ export function EmailAlertsForm({
                   max={5}
                   value={field.value}
                   onChange={(event) => field.onChange(Number(event.target.value))}
+                  disabled={isFreePlan}
                 />
               </FormControl>
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || isFreePlan}>
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

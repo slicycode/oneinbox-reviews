@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
+import { canAccessFeature } from "@/lib/subscriptions/access-control";
 
 export const GET = withAuthRequired(async (_req, context) => {
   const settings = await db
@@ -40,6 +41,28 @@ export const PUT = withAuthRequired(async (req, context) => {
       },
       { status: 400 }
     );
+  }
+
+  // Check if user is trying to enable email alerts without feature access
+  if (parsed.data.emailAlertsEnabled) {
+    const hasAccess = await canAccessFeature(
+      context.session.user.id,
+      "email_alerts"
+    );
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "upgrade_required",
+            message: "Email alerts require a Starter plan or higher",
+            feature: "email_alerts",
+          },
+          upgradeRequired: true,
+        },
+        { status: 403 }
+      );
+    }
   }
 
   const now = new Date();

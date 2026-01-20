@@ -8,6 +8,7 @@ import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import { appConfig } from "@/lib/config";
 import sendMail from "@/lib/email/sendMail";
 import NewReviewAlert from "@/emails/NewReviewAlert";
+import { canAccessFeature } from "@/lib/subscriptions/access-control";
 
 const getBaseUrl = () =>
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -19,6 +20,15 @@ export const sendNewReviewAlert = async (params: {
   since?: Date;
 }) => {
   if (params.insertedCount <= 0) {
+    return;
+  }
+
+  // Verify user has access to email alerts feature
+  const hasFeatureAccess = await canAccessFeature(params.userId, "email_alerts");
+  if (!hasFeatureAccess) {
+    console.log(
+      `[alerts] Skipping email alert for user ${params.userId}: no email_alerts feature access`
+    );
     return;
   }
 
