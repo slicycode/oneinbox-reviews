@@ -7,62 +7,20 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Check, X, Sparkles, CreditCard } from "lucide-react";
-import { getPlanConfig, plansConfig, type PlanTier } from "@/lib/plans/config";
+import { Sparkles, CreditCard } from "lucide-react";
+import { getPlanConfig, type PlanTier } from "@/lib/plans/config";
 import {
   isActiveSubscription,
   getStatusLabel,
 } from "@/lib/subscriptions/state-machine";
 import { BillingActions } from "./billing-actions";
-import { UpgradeButton } from "./upgrade-button";
-import { cn } from "@/lib/utils";
-import { formatReviewCount, formatRetentionDays } from "@/lib/plans/format";
-
-// Feature comparison data
-const planFeatures = [
-  {
-    name: "Reviews",
-    free: "50 reviews",
-    starter: "Unlimited",
-  },
-  {
-    name: "Data retention",
-    free: "30 days",
-    starter: "365 days",
-  },
-  {
-    name: "Google accounts",
-    free: "1 account",
-    starter: "1 account",
-  },
-  {
-    name: "Email alerts",
-    free: false,
-    starter: true,
-  },
-  {
-    name: "Advanced filters",
-    free: false,
-    starter: true,
-  },
-  {
-    name: "CSV export",
-    free: true,
-    starter: true,
-  },
-  {
-    name: "Review response drafts",
-    free: true,
-    starter: true,
-  },
-];
+import { PricingTableWrapper } from "./pricing-table-wrapper";
+import { formatRetentionDays } from "@/lib/plans/format";
 
 export default async function BillingSettingsPage() {
   const session = await auth();
@@ -219,113 +177,8 @@ export default async function BillingSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Plan Comparison Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="pb-4 text-left font-medium">Feature</th>
-                  <th className="pb-4 text-center">
-                    <div
-                      className={cn(
-                        "inline-flex flex-col items-center rounded-lg p-3",
-                        currentTier === "free" && "bg-muted",
-                      )}
-                    >
-                      <span className="text-lg font-bold">Free</span>
-                      <span className="text-sm text-muted-foreground">$0</span>
-                      {currentTier === "free" && (
-                        <Badge variant="outline" className="mt-1">
-                          Current
-                        </Badge>
-                      )}
-                    </div>
-                  </th>
-                  <th className="pb-4 text-center">
-                    <div
-                      className={cn(
-                        "inline-flex flex-col items-center rounded-lg p-3",
-                        currentTier === "starter"
-                          ? "bg-muted"
-                          : "bg-primary/5 border border-primary/20",
-                      )}
-                    >
-                      <span className="text-lg font-bold">Starter</span>
-                      <span className="text-sm text-muted-foreground">
-                        $
-                        {(
-                          plansConfig.starter.pricing.monthly.price / 100
-                        ).toFixed(0)}
-                        /mo
-                      </span>
-                      {currentTier === "starter" ? (
-                        <Badge variant="outline" className="mt-1">
-                          Current
-                        </Badge>
-                      ) : (
-                        <Badge className="mt-1">Recommended</Badge>
-                      )}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {planFeatures.map((feature, index) => (
-                  <tr
-                    key={feature.name}
-                    className={cn(
-                      "border-b last:border-0",
-                      index % 2 === 0 && "bg-muted/30",
-                    )}
-                  >
-                    <td className="py-3 text-sm font-medium">{feature.name}</td>
-                    <td className="py-3 text-center">
-                      {typeof feature.free === "boolean" ? (
-                        feature.free ? (
-                          <Check className="mx-auto h-5 w-5 text-green-600" />
-                        ) : (
-                          <X className="mx-auto h-5 w-5 text-muted-foreground" />
-                        )
-                      ) : (
-                        <span className="text-sm">{feature.free}</span>
-                      )}
-                    </td>
-                    <td className="py-3 text-center">
-                      {typeof feature.starter === "boolean" ? (
-                        feature.starter ? (
-                          <Check className="mx-auto h-5 w-5 text-green-600" />
-                        ) : (
-                          <X className="mx-auto h-5 w-5 text-muted-foreground" />
-                        )
-                      ) : (
-                        <span className="text-sm font-medium text-primary">
-                          {feature.starter}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <PricingTableWrapper currentTier={currentTier} />
         </CardContent>
-        {isFreePlan && (
-          <CardFooter className="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">Ready to upgrade?</p>
-              <p className="text-sm text-muted-foreground">
-                Get unlimited reviews and email alerts today.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <UpgradeButton>
-                Upgrade to Starter - $
-                {(plansConfig.starter.pricing.monthly.price / 100).toFixed(0)}
-                /mo
-              </UpgradeButton>
-            </div>
-          </CardFooter>
-        )}
       </Card>
 
       {/* FAQ Section */}
