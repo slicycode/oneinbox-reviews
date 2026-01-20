@@ -6,8 +6,13 @@ import { alertSettings } from "@/db/schema/alert-settings";
 import { enforceFeatureAccess } from "@/lib/subscriptions/api-enforcement";
 import sendMail from "@/lib/email/sendMail";
 import { appConfig } from "@/lib/config";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-export const POST = withAuthRequired(async (_req, context) => {
+export const POST = withAuthRequired(async (req, context) => {
+  // Rate limit: 3 email tests per minute
+  const { success, response } = await checkRateLimit(req, "email", context.session.user.id);
+  if (!success && response) return response;
+
   // Check feature access
   const enforcementError = await enforceFeatureAccess(
     context.session.user.id,

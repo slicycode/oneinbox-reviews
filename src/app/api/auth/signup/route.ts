@@ -1,15 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { signUpWithPasswordSchema } from '@/lib/validations/auth.schema'
 import { hashPassword } from '@/lib/auth/password'
 import { db } from '@/db'
 import { users } from '@/db/schema/user'
 import { eq } from 'drizzle-orm'
 import onUserCreate from '@/lib/users/onUserCreate'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 // Force Node.js runtime for argon2 support
 export const runtime = 'nodejs'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limit: 5 requests per minute for auth endpoints
+  const { success, response } = await checkRateLimit(request, 'auth')
+  if (!success && response) return response
+
   try {
     const body = await request.json()
     const validation = signUpWithPasswordSchema.safeParse(body)

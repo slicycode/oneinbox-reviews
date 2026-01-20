@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { resetPasswordRequestSchema } from "@/lib/validations/auth.schema";
 import { encryptJson } from "@/lib/encryption/edge-jwt";
 import { render } from "@react-email/components";
@@ -8,13 +8,18 @@ import { appConfig } from "@/lib/config";
 import { db } from "@/db";
 import { users } from "@/db/schema/user";
 import { eq } from "drizzle-orm";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 interface ResetPasswordToken {
   email: string;
   expiry: string;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limit: 5 requests per minute for auth endpoints
+  const { success, response } = await checkRateLimit(request, "auth");
+  if (!success && response) return response;
+
   try {
     const body = await request.json();
     const validation = resetPasswordRequestSchema.safeParse(body);

@@ -7,6 +7,7 @@ import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { reviewFiltersSchema } from "@/lib/validations/review-filters.schema";
 import { enforceFeatureAccess } from "@/lib/subscriptions/api-enforcement";
 import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const sanitizeCsvValue = (value: string) => {
   const stripped = value.replace(/^[\t\r\n ]+/, "");
@@ -24,6 +25,10 @@ const escapeCsv = (value: string) => {
 };
 
 export const GET = withAuthRequired(async (req, context) => {
+  // Rate limit: 5 exports per hour per user
+  const { success, response } = await checkRateLimit(req, "export", context.session.user.id);
+  if (!success && response) return response;
+
   const { searchParams } = new URL(req.url);
   const queryParams = searchParams.toString();
   const parsedFilters = reviewFiltersSchema.safeParse({
