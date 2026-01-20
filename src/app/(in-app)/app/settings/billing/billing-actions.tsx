@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { BillingDetailsRequiredModal } from "@/components/ui/billing-details-required-modal";
 import { Loader2 } from "lucide-react";
 import type { PlanTier } from "@/lib/plans/config";
 
@@ -31,10 +32,27 @@ export function BillingActions({
 }: BillingActionsProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isCheckingBilling, setIsCheckingBilling] = React.useState(false);
+  const [showBillingModal, setShowBillingModal] = React.useState(false);
 
   const handleUpgrade = async () => {
-    setIsLoading(true);
+    setIsCheckingBilling(true);
     try {
+      // Check if user has billing profile first
+      const billingResponse = await fetch("/api/billing/profile");
+      const billingData = await billingResponse.json();
+
+      if (!billingData.data) {
+        // No billing profile - show modal prompting user to complete it
+        setShowBillingModal(true);
+        setIsCheckingBilling(false);
+        return;
+      }
+
+      // Billing profile exists - proceed with checkout
+      setIsCheckingBilling(false);
+      setIsLoading(true);
+
       const response = await fetch("/api/app/subscriptions/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,8 +66,7 @@ export function BillingActions({
 
       if (!response.ok) {
         if (data.error?.code === "BILLING_PROFILE_REQUIRED") {
-          toast.error("Please complete your billing profile first");
-          router.push("/app/billing/profile");
+          setShowBillingModal(true);
           return;
         }
         toast.error(data.error?.message || "Failed to start checkout");
@@ -65,6 +82,7 @@ export function BillingActions({
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
+      setIsCheckingBilling(false);
     }
   };
 
@@ -82,7 +100,9 @@ export function BillingActions({
         return;
       }
 
-      toast.success("Subscription will be canceled at the end of the billing period");
+      toast.success(
+        "Subscription will be canceled at the end of the billing period",
+      );
       router.refresh();
     } catch (error) {
       console.error("Cancel error:", error);
@@ -119,16 +139,30 @@ export function BillingActions({
   // Free user - show upgrade button
   if (currentTier === "free" || !hasActiveSubscription) {
     return (
-      <Button onClick={handleUpgrade} disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Loading...
-          </>
-        ) : (
-          "Upgrade to Starter"
-        )}
-      </Button>
+      <>
+        <BillingDetailsRequiredModal
+          open={showBillingModal}
+          onOpenChange={setShowBillingModal}
+        />
+        <Button
+          onClick={handleUpgrade}
+          disabled={isLoading || isCheckingBilling}
+        >
+          {isCheckingBilling ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Checking...
+            </>
+          ) : isLoading ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            "Upgrade to Starter"
+          )}
+        </Button>
+      </>
     );
   }
 
