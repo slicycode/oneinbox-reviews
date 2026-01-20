@@ -10,13 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import useUser from "@/lib/users/useUser";
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  CreditCard,
-  LogOut,
-  UserIcon,
-  Ticket,
-} from "lucide-react";
+import { LogOut, UserIcon, Ticket } from "lucide-react";
 
 export function UserButton() {
   const { user } = useUser();
@@ -32,7 +26,7 @@ export function UserButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 outline-hidden">
-        <Avatar>
+        <Avatar className="h-8 w-8">
           <AvatarImage src={user?.image || undefined} />
           <AvatarFallback>
             {user?.name ? (
@@ -42,7 +36,7 @@ export function UserButton() {
             )}
           </AvatarFallback>
         </Avatar>
-        <span className="hidden text-sm font-medium md:inline-block">
+        <span className="hidden text-sm font-medium lg:inline-block">
           {user?.name || user?.email}
         </span>
       </DropdownMenuTrigger>
@@ -57,28 +51,15 @@ export function UserButton() {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/app" className="cursor-pointer">
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
+          <Link href="/app/profile" className="cursor-pointer">
+            <UserIcon className="mr-2 h-4 w-4" />
+            Profile
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/app/plan" className="cursor-pointer">
-            <CreditCard className="mr-2 h-4 w-4" />
-            Manage Plan
-          </Link>
-        </DropdownMenuItem>
-
         <DropdownMenuItem asChild>
           <Link href="/app/redeem-ltd" className="cursor-pointer">
             <Ticket className="mr-2 h-4 w-4" />
             Redeem LTD Coupon
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/app/profile" className="cursor-pointer">
-            <UserIcon className="mr-2 h-4 w-4" />
-            Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
