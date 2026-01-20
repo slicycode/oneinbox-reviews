@@ -6,7 +6,7 @@ import { reviewExports } from "@/db/schema/review-exports";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { alertSettings } from "@/db/schema/alert-settings";
 import { subscriptions } from "@/db/schema/subscriptions";
-import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
+import { and, eq, desc, asc, sql, gte, lte } from "drizzle-orm";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
 import { ReviewFilters } from "@/features/inbox/review-filters";
@@ -42,6 +42,8 @@ export default async function InboxPage({
     dateFrom: rawParams.date_from,
     dateTo: rawParams.date_to,
     query: rawParams.q,
+    status: rawParams.status,
+    sortBy: rawParams.sort,
   });
   const filters: ReviewFiltersInput = parsedFilters.success
     ? parsedFilters.data
@@ -94,6 +96,9 @@ export default async function InboxPage({
       sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`,
     );
   }
+  if (filters.status) {
+    conditions.push(eq(reviews.status, filters.status));
+  }
 
   // Get total review count for the user (without filters)
   const totalReviewCount = await db
@@ -101,6 +106,21 @@ export default async function InboxPage({
     .from(reviews)
     .where(eq(reviews.userId, session.user.id))
     .then((rows) => rows[0]?.count ?? 0);
+
+  // Determine sort order
+  const getOrderBy = () => {
+    switch (filters.sortBy) {
+      case "date_oldest":
+        return asc(reviews.reviewCreatedAt);
+      case "rating_highest":
+        return desc(reviews.rating);
+      case "rating_lowest":
+        return asc(reviews.rating);
+      case "date_newest":
+      default:
+        return desc(reviews.reviewCreatedAt);
+    }
+  };
 
   const reviewRows = await db
     .select({
@@ -113,7 +133,7 @@ export default async function InboxPage({
     })
     .from(reviews)
     .where(and(...conditions))
-    .orderBy(desc(reviews.reviewCreatedAt))
+    .orderBy(getOrderBy())
     .limit(reviewLimit);
 
   const reviewData = reviewRows.map((row) => ({
