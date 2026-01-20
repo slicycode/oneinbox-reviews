@@ -27,6 +27,7 @@ import {
 import { isActiveSubscription } from "@/lib/subscriptions/state-machine";
 import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
 import { getPlanConfig, type PlanTier } from "@/lib/plans/config";
+import { formatReviewCount, formatReviewLimit } from "@/lib/plans/format";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -207,11 +208,9 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalReviews}</div>
-            {maxReviews && (
-              <p className="text-xs text-muted-foreground">
-                of {maxReviews} limit
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              {maxReviews ? `of ${formatReviewLimit(maxReviews)}` : "Unlimited"}
+            </p>
           </CardContent>
         </Card>
 
@@ -261,11 +260,14 @@ export default async function DashboardPage() {
               <>
                 <Progress value={usagePercent} className="h-2" />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {usagePercent}% used ({totalReviews}/{maxReviews})
+                  {usagePercent}% used (
+                  {formatReviewCount(totalReviews, maxReviews)})
                 </p>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Unlimited reviews</p>
+              <p className="text-sm text-muted-foreground">
+                {formatReviewLimit(null)}
+              </p>
             )}
           </CardContent>
         </Card>

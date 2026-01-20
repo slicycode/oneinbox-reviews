@@ -23,6 +23,7 @@ import {
 import { BillingActions } from "./billing-actions";
 import { UpgradeButton } from "./upgrade-button";
 import { cn } from "@/lib/utils";
+import { formatReviewCount, formatRetentionDays } from "@/lib/plans/format";
 
 // Feature comparison data
 const planFeatures = [
@@ -189,11 +190,7 @@ export default async function BillingSettingsPage() {
             <div className="space-y-1">
               <p className="text-sm font-medium">Data Retention</p>
               <p className="text-2xl font-bold">
-                {planConfig.limits.retentionDays}
-                <span className="text-sm font-normal text-muted-foreground">
-                  {" "}
-                  days
-                </span>
+                {formatRetentionDays(planConfig.limits.retentionDays)}
               </p>
             </div>
             <div className="space-y-1">

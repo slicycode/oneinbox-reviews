@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatReviewLimit, formatRetentionDays } from "@/lib/plans/format";
 
 interface ReviewListItem {
   id: string;
@@ -112,10 +113,15 @@ export function ReviewList({
           <div className="flex flex-col gap-1 text-sm text-muted-foreground">
             <span>
               Showing {displayedCount} of {totalCount} reviews
-              {showLimitWarning && ` (limited to ${limit} on Free plan)`}
+              {showLimitWarning &&
+                limit !== undefined &&
+                ` (limited to ${formatReviewLimit(limit)} on Free plan)`}
             </span>
-            {showRetentionInfo && (
-              <span>Data retention: {retentionDays} days on Free plan</span>
+            {showRetentionInfo && retentionDays !== undefined && (
+              <span>
+                Data retention: {formatRetentionDays(retentionDays)} on Free
+                plan
+              </span>
             )}
           </div>
           {(showLimitWarning || showRetentionInfo) && (
