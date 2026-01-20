@@ -25,7 +25,10 @@ export default async function AppHomepage() {
     })
     .from(accounts)
     .where(
-      and(eq(accounts.userId, session.user.id), eq(accounts.provider, "google"))
+      and(
+        eq(accounts.userId, session.user.id),
+        eq(accounts.provider, "google"),
+      ),
     )
     .limit(1)
     .then((rows) => rows[0] ?? null);
@@ -36,7 +39,7 @@ export default async function AppHomepage() {
     !googleAccount?.isExpired;
 
   if (isConnected) {
-    redirect("/app/inbox");
+    redirect("/app/dashboard");
   }
 
   const content = getAppEntryContent();
