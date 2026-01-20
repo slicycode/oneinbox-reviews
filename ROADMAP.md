@@ -15,42 +15,40 @@
 - Email alerts feature (Starter only)
 - Basic billing management UI
 - Soft-gating upgrade CTAs
-
-### In Progress (Sprint 3)
-- Server-side enforcement of plan limits
-- Review limit enforcement (50 reviews for Free)
-- Data retention enforcement
+- Server-side enforcement of plan limits (Sprint 3)
+- Review limit enforcement (50 reviews for Free) (Sprint 3)
+- Data retention enforcement (Sprint 3)
 
 ---
 
-## Pre-MVP Polish (Sprint 4)
+## Pre-MVP Polish (Sprint 4) ✓ Complete
 
 ### UX/UI Overhaul
 
 #### Billing & Subscription UI
-- [ ] Redesign billing page with clearer plan comparison
-- [ ] Add visual pricing table component
-- [ ] Improve upgrade flow with feature highlights
-- [ ] Add subscription status indicators throughout app
-- [ ] Fix plan limit display consistency across all pages
+- [x] Redesign billing page with clearer plan comparison
+- [x] Add visual pricing table component
+- [x] Improve upgrade flow with feature highlights
+- [x] Add subscription status indicators throughout app
+- [x] Fix plan limit display consistency across all pages
 
 #### Dashboard & Navigation
-- [ ] Create proper dashboard landing page with key metrics
-- [ ] Improve navigation structure and information architecture
-- [ ] Add onboarding checklist for new users
-- [ ] Implement empty states for all views
+- [x] Create proper dashboard landing page with key metrics
+- [x] Improve navigation structure and information architecture
+- [x] Add onboarding checklist for new users
+- [x] Implement empty states for all views
 
 #### Review Inbox Improvements
-- [ ] Add review filtering and sorting options
-- [ ] Implement review search functionality
-- [ ] Add bulk actions for review management
-- [ ] Improve review card design and readability
+- [x] Add review filtering and sorting options
+- [x] Implement review search functionality
+- [x] Add bulk actions for review management
+- [x] Improve review card design and readability
 
 #### Settings & Account
-- [ ] Redesign settings page layout
-- [ ] Add account deletion flow
-- [ ] Improve Google account connection UI
-- [ ] Add notification preferences
+- [x] Redesign settings page layout
+- [x] Add account deletion flow
+- [x] Improve Google account connection UI
+- [x] Add notification preferences
 
 ---
 
