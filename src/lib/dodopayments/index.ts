@@ -185,3 +185,37 @@ export const createSubscriptionCheckout = async (params: {
     throw error;
   }
 };
+
+export const getSubscription = async (subscriptionId: string) => {
+  try {
+    const response = await client.subscriptions.retrieve(subscriptionId);
+    return response;
+  } catch (error) {
+    console.error("Error fetching DodoPayments subscription:", error);
+    throw error;
+  }
+};
+
+export const cancelSubscription = async (subscriptionId: string) => {
+  try {
+    const response = await client.subscriptions.update(subscriptionId, {
+      status: "cancelled",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error canceling DodoPayments subscription:", error);
+    throw error;
+  }
+};
+
+export const resumeSubscription = async (subscriptionId: string) => {
+  try {
+    const response = await client.subscriptions.update(subscriptionId, {
+      status: "active",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error resuming DodoPayments subscription:", error);
+    throw error;
+  }
+};
