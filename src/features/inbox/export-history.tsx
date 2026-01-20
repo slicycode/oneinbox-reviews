@@ -1,3 +1,4 @@
+import { FileDown } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type ExportHistoryItem = {
   id: string;
@@ -50,9 +52,12 @@ export function ExportHistory({ items }: ExportHistoryProps) {
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No exports yet. Export your inbox to see history here.
-          </p>
+          <EmptyState
+            icon={FileDown}
+            title="No exports yet"
+            description="Export your inbox to see history here."
+            className="border-0 p-4"
+          />
         ) : (
           <div className="overflow-x-auto">
             <Table>

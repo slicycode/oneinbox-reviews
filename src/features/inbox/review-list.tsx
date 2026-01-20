@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Inbox } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Select,
   SelectContent,
@@ -91,20 +93,15 @@ export function ReviewList({
 
   if (items.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No reviews yet</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            If you just connected Google, your first sync can take a few
-            minutes. You can refresh or check your integration status.
-          </p>
-          <Button asChild className="mt-4" size="sm">
-            <Link href="/app/integrations">Go to integrations</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={Inbox}
+        title="No reviews yet"
+        description="If you just connected Google, your first sync can take a few minutes. You can refresh or check your integration status."
+        action={{
+          label: "Go to integrations",
+          href: "/app/integrations",
+        }}
+      />
     );
   }
 

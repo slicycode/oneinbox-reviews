@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   ArrowLeft,
   History,
@@ -173,22 +174,16 @@ export default async function CreditsHistoryPage() {
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <div className="py-12 text-center">
-              <History className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">
-                No transactions yet
-              </h3>
-              <p className="mb-4 text-muted-foreground">
-                Your credit transactions will appear here once you make your
-                first purchase or use credits.
-              </p>
-              <Button asChild>
-                <Link href="/#credits">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Buy Credits
-                </Link>
-              </Button>
-            </div>
+            <EmptyState
+              icon={History}
+              title="No transactions yet"
+              description="Your credit transactions will appear here once you make your first purchase or use credits."
+              action={{
+                label: "Buy Credits",
+                href: "/#credits",
+              }}
+              className="border-0 py-8"
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -217,7 +212,7 @@ export default async function CreditsHistoryPage() {
                             variant={typeStyle.variant}
                             className={cn(
                               "flex items-center gap-1 w-fit",
-                              typeStyle.className
+                              typeStyle.className,
                             )}
                           >
                             <TypeIcon className="h-3 w-3" />
@@ -249,7 +244,7 @@ export default async function CreditsHistoryPage() {
                                 {formatCurrency(
                                   transaction.metadata.amountPaid as number,
                                   (transaction.metadata.currency as string) ||
-                                    "USD"
+                                    "USD",
                                 )}
                               </div>
                             )}
