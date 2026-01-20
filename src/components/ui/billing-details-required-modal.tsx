@@ -17,17 +17,34 @@ import { CreditCard, ArrowRight } from "lucide-react";
 interface BillingDetailsRequiredModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnUrl?: string;
+  planTier?: string;
+  billingInterval?: string;
 }
 
 export function BillingDetailsRequiredModal({
   open,
   onOpenChange,
+  returnUrl,
+  planTier,
+  billingInterval,
 }: BillingDetailsRequiredModalProps) {
   const router = useRouter();
 
   const handleCompleteBilling = () => {
     onOpenChange(false);
-    router.push("/app/billing/profile");
+    const params = new URLSearchParams();
+    if (returnUrl) {
+      params.set("returnUrl", returnUrl);
+    }
+    if (planTier) {
+      params.set("plan", planTier);
+    }
+    if (billingInterval) {
+      params.set("interval", billingInterval);
+    }
+    const queryString = params.toString();
+    router.push(`/app/billing/profile${queryString ? `?${queryString}` : ""}`);
   };
 
   return (

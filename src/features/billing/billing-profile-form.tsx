@@ -52,10 +52,12 @@ const emptyValues: BillingProfileFormValues = {
 
 interface BillingProfileFormProps {
   initialValues?: BillingProfileInput | null;
+  onSuccess?: () => void;
 }
 
 export function BillingProfileForm({
   initialValues,
+  onSuccess,
 }: BillingProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -106,6 +108,7 @@ export function BillingProfileForm({
         ...result.data,
         taxId: result.data?.taxId ?? "",
       });
+      onSuccess?.();
     } catch (error) {
       console.error("Billing profile update error:", error);
       toast.error("Something went wrong");

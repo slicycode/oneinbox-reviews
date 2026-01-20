@@ -9,9 +9,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BillingProfileForm } from "@/features/billing/billing-profile-form";
+import { BillingProfileFormWrapper } from "@/features/billing/billing-profile-form-wrapper";
 
-export default async function BillingProfilePage() {
+interface BillingProfilePageProps {
+  searchParams: Promise<{
+    returnUrl?: string;
+    plan?: string;
+    interval?: string;
+  }>;
+}
+
+export default async function BillingProfilePage({
+  searchParams,
+}: BillingProfilePageProps) {
+  const { returnUrl, plan, interval } = await searchParams;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -55,7 +66,12 @@ export default async function BillingProfilePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <BillingProfileForm initialValues={initialValues} />
+          <BillingProfileFormWrapper
+            initialValues={initialValues}
+            returnUrl={returnUrl}
+            plan={plan}
+            interval={interval}
+          />
         </CardContent>
       </Card>
     </div>

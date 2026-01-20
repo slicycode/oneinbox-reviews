@@ -13,7 +13,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, CreditCard } from "lucide-react";
-import { getPlanConfig, type PlanTier } from "@/lib/plans/config";
+import {
+  getPlanConfig,
+  type PlanTier,
+  type BillingInterval,
+} from "@/lib/plans/config";
 import {
   isActiveSubscription,
   getStatusLabel,
@@ -22,7 +26,18 @@ import { BillingActions } from "./billing-actions";
 import { PricingTableWrapper } from "./pricing-table-wrapper";
 import { formatRetentionDays } from "@/lib/plans/format";
 
-export default async function BillingSettingsPage() {
+interface BillingSettingsPageProps {
+  searchParams: Promise<{
+    billingComplete?: string;
+    plan?: string;
+    interval?: string;
+  }>;
+}
+
+export default async function BillingSettingsPage({
+  searchParams,
+}: BillingSettingsPageProps) {
+  const { billingComplete, plan, interval } = await searchParams;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -168,7 +183,17 @@ export default async function BillingSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <PricingTableWrapper currentTier={currentTier} />
+          <PricingTableWrapper
+            currentTier={currentTier}
+            autoCheckout={
+              billingComplete === "true" && plan && interval
+                ? {
+                    plan: plan as PlanTier,
+                    interval: interval as BillingInterval,
+                  }
+                : undefined
+            }
+          />
         </CardContent>
       </Card>
 

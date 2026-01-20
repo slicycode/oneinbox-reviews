@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -79,7 +78,6 @@ export function UpgradeModal({
   onOpenChange,
   defaultInterval = "monthly",
 }: UpgradeModalProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCheckingBilling, setIsCheckingBilling] = React.useState(false);
   const [showBillingModal, setShowBillingModal] = React.useState(false);
@@ -150,6 +148,9 @@ export function UpgradeModal({
       <BillingDetailsRequiredModal
         open={showBillingModal}
         onOpenChange={setShowBillingModal}
+        returnUrl="/app/settings/billing"
+        planTier="starter"
+        billingInterval={billingInterval}
       />
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
