@@ -30,7 +30,7 @@
 ---
 
 ## Story 2: define-plans-and-subscription-states
-**Status:** 🔄 IN PROGRESS
+**Status:** ✅ COMPLETE
 
 ### Tasks:
 
@@ -40,25 +40,25 @@
   - Include: pricing, features, quotas, Dodo product IDs
   - Pattern: Export typed config object
 
-- [ ] **TASK-2.2:** Create subscription state machine
+- [x] **TASK-2.2:** Create subscription state machine
   - File: `src/lib/subscriptions/state-machine.ts`
   - Define: Valid state transitions
   - Include: `canTransition(from, to)` function
   - States: none → trialing → active → canceled
 
-- [ ] **TASK-2.3:** Create access control helpers
+- [x] **TASK-2.3:** Create access control helpers
   - File: `src/lib/subscriptions/access-control.ts`
   - Functions:
     - `canAccessFeature(userId, feature): boolean`
     - `getPlanLimits(planTier): PlanLimits`
     - `requiresUpgrade(userId, feature): boolean`
 
-- [ ] **TASK-2.4:** Update getUserPlan utility
+- [x] **TASK-2.4:** Update getUserPlan utility
   - File: `src/lib/plans/getUserPlan.ts`
   - Change: Read from subscriptions table
   - Return: Plan config + subscription status
 
-- [ ] **TASK-2.5:** Add environment variables
+- [x] **TASK-2.5:** Add environment variables
   - File: `.env.example`
   - Add: DODO_STARTER_MONTHLY_PRODUCT_ID
   - Add: DODO_STARTER_YEARLY_PRODUCT_ID (optional)

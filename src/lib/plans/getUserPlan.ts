@@ -1,40 +1,80 @@
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { users } from "@/db/schema/user";
-import { plans } from "@/db/schema/plans";
-import { MeResponse } from "@/app/api/app/me/types";
+import { subscriptions, type SubscriptionStatus } from "@/db/schema/subscriptions";
+import {
+  type PlanTier,
+  type PlanConfig,
+  type PlanLimits,
+  getPlanConfig,
+  getDefaultPlanConfig,
+} from "@/lib/plans/config";
+import { isActiveSubscription } from "@/lib/subscriptions/state-machine";
 
-const getUserPlan = async (
-  userId: string
-): Promise<MeResponse["currentPlan"] | null> => {
-  const user = await db
-    .select({
-      planId: users.planId,
-    })
-    .from(users)
-    .where(eq(users.id, userId));
+/**
+ * User plan response with subscription status
+ */
+export interface UserPlanResponse {
+  planTier: PlanTier;
+  planConfig: PlanConfig;
+  limits: PlanLimits;
+  subscription: {
+    id: string;
+    status: SubscriptionStatus;
+    currentPeriodEnd: Date | null;
+    cancelAtPeriodEnd: boolean;
+    trialEnd: Date | null;
+  } | null;
+  isActive: boolean;
+  isTrial: boolean;
+}
 
-  if (!user[0].planId) {
-    return null;
+/**
+ * Get user's current plan and subscription status
+ */
+const getUserPlan = async (userId: string): Promise<UserPlanResponse> => {
+  const result = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .limit(1);
+
+  const subscription = result[0];
+
+  // No subscription - return free plan
+  if (!subscription) {
+    const defaultPlan = getDefaultPlanConfig();
+    return {
+      planTier: "free",
+      planConfig: defaultPlan,
+      limits: defaultPlan.limits,
+      subscription: null,
+      isActive: false,
+      isTrial: false,
+    };
   }
 
-  const currentPlan = await db
-    .select({
-      id: plans.id,
-      name: plans.name,
-      codename: plans.codename,
-      quotas: plans.quotas,
-      default: plans.default,
-    })
-    .from(plans)
-    .where(eq(plans.id, user[0].planId));
+  // Determine effective plan tier based on subscription status
+  const isActive = isActiveSubscription(subscription.status);
+  const effectiveTier: PlanTier = isActive
+    ? (subscription.planTier as PlanTier)
+    : "free";
+  const planConfig = getPlanConfig(effectiveTier);
 
-  if (!currentPlan[0]) {
-    return null;
-  }
-
-  return currentPlan[0];
+  return {
+    planTier: effectiveTier,
+    planConfig,
+    limits: planConfig.limits,
+    subscription: {
+      id: subscription.id,
+      status: subscription.status,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      trialEnd: subscription.trialEnd,
+    },
+    isActive,
+    isTrial: subscription.status === "trialing",
+  };
 };
 
 export default getUserPlan;

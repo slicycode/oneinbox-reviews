@@ -95,17 +95,17 @@ export const plansConfig: Record<PlanTier, PlanConfig> = {
     features: ["unlimited_reviews", "email_alerts", "advanced_filters"],
     limits: {
       maxReviews: null, // unlimited
-      maxGoogleAccounts: 5,
+      maxGoogleAccounts: 1, // PRD: "1 user, Google only"
       emailAlertsEnabled: true,
       retentionDays: 365,
     },
     pricing: {
       monthly: {
-        price: 1900, // $19.00
+        price: 4900, // $49.00 per PRD
         dodoProductId: process.env.DODO_STARTER_MONTHLY_PRODUCT_ID || null,
       },
       yearly: {
-        price: 15900, // $159.00 (save ~30%)
+        price: 49000, // $490.00 (2 months free)
         dodoProductId: process.env.DODO_STARTER_YEARLY_PRODUCT_ID || null,
       },
     },
