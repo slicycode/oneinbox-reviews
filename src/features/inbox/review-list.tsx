@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Inbox, ChevronDown, ChevronUp, User } from "lucide-react";
+import { Inbox, ChevronDown, ChevronUp, User, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,26 +32,34 @@ interface ReviewListProps {
   limit?: number | null;
   isFreePlan?: boolean;
   retentionDays?: number;
+  searchQuery?: string;
 }
 
 const statusConfig: Record<
   ReviewListItem["status"],
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    className?: string;
+  }
 > = {
   unread: {
     label: "Unread",
     variant: "secondary",
-    className: "bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300",
+    className:
+      "bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300",
   },
   responded: {
     label: "Responded",
     variant: "secondary",
-    className: "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/50 dark:text-green-300",
+    className:
+      "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/50 dark:text-green-300",
   },
   needs_follow_up: {
     label: "Follow-up",
     variant: "secondary",
-    className: "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-300",
+    className:
+      "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/50 dark:text-amber-300",
   },
 };
 
@@ -75,14 +83,52 @@ function formatRelativeDate(dateString: string): string {
   return date.toLocaleDateString();
 }
 
+// Highlight matching text in content
+function HighlightedText({
+  text,
+  query,
+}: {
+  text: string;
+  query?: string;
+}) {
+  if (!query || !text) {
+    return <>{text}</>;
+  }
+
+  const parts = text.split(new RegExp(`(${escapeRegExp(query)})`, "gi"));
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark
+            key={index}
+            className="bg-yellow-200 dark:bg-yellow-800 text-inherit rounded-sm px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          <React.Fragment key={index}>{part}</React.Fragment>
+        )
+      )}
+    </>
+  );
+}
+
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function ReviewCard({
   review,
   updating,
   onStatusChange,
+  searchQuery,
 }: {
   review: ReviewListItem;
   updating: boolean;
   onStatusChange: (status: ReviewListItem["status"]) => void;
+  searchQuery?: string;
 }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const contentRef = React.useRef<HTMLParagraphElement>(null);
@@ -116,9 +162,15 @@ function ReviewCard({
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold">
-                {review.authorName || "Anonymous"}
+                <HighlightedText
+                  text={review.authorName || "Anonymous"}
+                  query={searchQuery}
+                />
               </span>
-              <Badge variant={status.variant} className={cn("text-xs", status.className)}>
+              <Badge
+                variant={status.variant}
+                className={cn("text-xs", status.className)}
+              >
                 {status.label}
               </Badge>
             </div>
@@ -164,7 +216,14 @@ function ReviewCard({
             !isExpanded && "line-clamp-2"
           )}
         >
-          {review.content || "No review content"}
+          {searchQuery ? (
+            <HighlightedText
+              text={review.content || "No review content"}
+              query={searchQuery}
+            />
+          ) : (
+            review.content || "No review content"
+          )}
         </p>
         {isTruncated && (
           <button
@@ -193,6 +252,7 @@ export function ReviewList({
   limit,
   isFreePlan,
   retentionDays,
+  searchQuery,
 }: ReviewListProps) {
   const [items, setItems] = React.useState(reviews);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
@@ -205,6 +265,7 @@ export function ReviewList({
   const displayedCount = items.length;
   const hasLimit = limit !== null && limit !== undefined;
   const showRetentionInfo = isFreePlan && retentionDays !== undefined;
+  const isSearching = searchQuery && searchQuery.trim() !== "";
 
   React.useEffect(() => {
     setItems(reviews);
@@ -241,6 +302,18 @@ export function ReviewList({
     }
   };
 
+  // Empty state for search with no results
+  if (items.length === 0 && isSearching) {
+    return (
+      <EmptyState
+        icon={SearchX}
+        title="No reviews found"
+        description={`No reviews match your search for "${searchQuery}". Try different keywords or clear the search.`}
+      />
+    );
+  }
+
+  // Empty state for no reviews at all
   if (items.length === 0) {
     return (
       <EmptyState
@@ -257,32 +330,43 @@ export function ReviewList({
 
   return (
     <div className="flex flex-col gap-3">
-      {(hasLimit || showRetentionInfo) && totalCount !== undefined && (
-        <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-            <span>
-              Showing {displayedCount} of {totalCount} reviews
-              {showLimitWarning &&
-                limit !== undefined &&
-                ` (limited to ${formatReviewLimit(limit)} on Free plan)`}
-            </span>
-            {showRetentionInfo && retentionDays !== undefined && (
+      {(hasLimit || showRetentionInfo || isSearching) &&
+        totalCount !== undefined && (
+          <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               <span>
-                Data retention: {formatRetentionDays(retentionDays)} on Free
-                plan
+                {isSearching ? (
+                  <>
+                    Found {displayedCount}{" "}
+                    {displayedCount === 1 ? "review" : "reviews"} matching your
+                    search
+                  </>
+                ) : (
+                  <>
+                    Showing {displayedCount} of {totalCount} reviews
+                    {showLimitWarning &&
+                      limit !== undefined &&
+                      ` (limited to ${formatReviewLimit(limit)} on Free plan)`}
+                  </>
+                )}
               </span>
+              {showRetentionInfo && retentionDays !== undefined && !isSearching && (
+                <span>
+                  Data retention: {formatRetentionDays(retentionDays)} on Free
+                  plan
+                </span>
+              )}
+            </div>
+            {(showLimitWarning || showRetentionInfo) && !isSearching && (
+              <a
+                href="/app/settings/billing"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Upgrade for more
+              </a>
             )}
           </div>
-          {(showLimitWarning || showRetentionInfo) && (
-            <a
-              href="/app/settings/billing"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Upgrade for more
-            </a>
-          )}
-        </div>
-      )}
+        )}
 
       <div className="flex flex-col gap-3">
         {items.map((review) => (
@@ -291,6 +375,7 @@ export function ReviewList({
             review={review}
             updating={updating[review.id] ?? false}
             onStatusChange={(status) => updateStatus(review.id, status)}
+            searchQuery={searchQuery}
           />
         ))}
       </div>

@@ -291,6 +291,7 @@ export default async function InboxPage({
         limit={planLimits.maxReviews}
         isFreePlan={isFreePlan}
         retentionDays={planLimits.retentionDays}
+        searchQuery={filters.query}
       />
     </div>
   );

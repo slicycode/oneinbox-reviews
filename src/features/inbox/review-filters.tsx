@@ -13,8 +13,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, ArrowUpDown } from "lucide-react";
-import type { ReviewFiltersInput, SortBy } from "@/lib/validations/review-filters.schema";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { X, Filter, ArrowUpDown, Search, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type {
+  ReviewFiltersInput,
+  SortBy,
+} from "@/lib/validations/review-filters.schema";
 
 const ratings = ["1", "2", "3", "4", "5"];
 
@@ -44,15 +53,21 @@ export function ReviewFilters({ defaultValues }: ReviewFiltersProps) {
     defaultValues.ratingMax?.toString() ?? "any"
   );
   const [dateFrom, setDateFrom] = React.useState(
-    defaultValues.dateFrom ? defaultValues.dateFrom.toISOString().slice(0, 10) : ""
+    defaultValues.dateFrom
+      ? defaultValues.dateFrom.toISOString().slice(0, 10)
+      : ""
   );
   const [dateTo, setDateTo] = React.useState(
     defaultValues.dateTo ? defaultValues.dateTo.toISOString().slice(0, 10) : ""
   );
   const [query, setQuery] = React.useState(defaultValues.query ?? "");
   const [status, setStatus] = React.useState(defaultValues.status ?? "any");
-  const [sortBy, setSortBy] = React.useState(defaultValues.sortBy ?? "date_newest");
+  const [sortBy, setSortBy] = React.useState(
+    defaultValues.sortBy ?? "date_newest"
+  );
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const didMountRef = React.useRef(false);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const applyFilters = React.useCallback(() => {
     const params = new URLSearchParams();
@@ -66,6 +81,19 @@ export function ReviewFilters({ defaultValues }: ReviewFiltersProps) {
     router.push(`/app/inbox?${params.toString()}`);
   }, [dateFrom, dateTo, query, ratingMax, ratingMin, status, sortBy, router]);
 
+  const clearSearch = React.useCallback(() => {
+    setQuery("");
+    const params = new URLSearchParams();
+    if (ratingMin !== "any") params.set("rating_min", ratingMin);
+    if (ratingMax !== "any") params.set("rating_max", ratingMax);
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo) params.set("date_to", dateTo);
+    if (status !== "any") params.set("status", status);
+    if (sortBy !== "date_newest") params.set("sort", sortBy);
+    router.push(`/app/inbox?${params.toString()}`);
+    searchInputRef.current?.focus();
+  }, [dateFrom, dateTo, ratingMax, ratingMin, status, sortBy, router]);
+
   const clearFilters = React.useCallback(() => {
     setRatingMin("any");
     setRatingMax("any");
@@ -77,26 +105,26 @@ export function ReviewFilters({ defaultValues }: ReviewFiltersProps) {
     router.push("/app/inbox");
   }, [router]);
 
-  // Check if any filters are active
+  // Check if any filters are active (excluding search and sort)
   const hasActiveFilters =
     ratingMin !== "any" ||
     ratingMax !== "any" ||
     dateFrom !== "" ||
     dateTo !== "" ||
-    query !== "" ||
-    status !== "any" ||
-    sortBy !== "date_newest";
+    status !== "any";
 
-  // Count active filters (excluding sort)
+  // Count active filters (excluding sort and search)
   const activeFilterCount = [
     ratingMin !== "any",
     ratingMax !== "any",
     dateFrom !== "",
     dateTo !== "",
-    query !== "",
     status !== "any",
   ].filter(Boolean).length;
 
+  const hasSearchQuery = query.trim() !== "";
+
+  // Debounced search
   React.useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true;
@@ -111,123 +139,178 @@ export function ReviewFilters({ defaultValues }: ReviewFiltersProps) {
   }, [applyFilters, query]);
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4">
-      {/* Header with filter count and sort */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filters</span>
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {activeFilterCount} active
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          <Select value={sortBy} onValueChange={(value) => { setSortBy(value as SortBy); }}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Filter grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Status</Label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any status</SelectItem>
-              {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Rating min</Label>
-          <Select value={ratingMin} onValueChange={setRatingMin}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any</SelectItem>
-              {ratings.map((rating) => (
-                <SelectItem key={rating} value={rating}>
-                  {rating}+ stars
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Rating max</Label>
-          <Select value={ratingMax} onValueChange={setRatingMax}>
-            <SelectTrigger>
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any</SelectItem>
-              {ratings.map((rating) => (
-                <SelectItem key={rating} value={rating}>
-                  {rating} stars
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Date from</Label>
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(event) => setDateFrom(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Date to</Label>
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(event) => setDateTo(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label className="text-xs text-muted-foreground">Search</Label>
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Keywords..."
-          />
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={applyFilters}>
-          Apply Filters
-        </Button>
-        {hasActiveFilters && (
-          <Button size="sm" variant="ghost" onClick={clearFilters}>
-            <X className="mr-1 h-3 w-3" />
-            Clear all
-          </Button>
+    <div className="flex flex-col gap-4">
+      {/* Search Bar - Prominent */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          ref={searchInputRef}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search reviews by content or author..."
+          className="pl-10 pr-10 h-11"
+        />
+        {hasSearchQuery && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-muted"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
         )}
       </div>
+
+      {/* Search indicator */}
+      {hasSearchQuery && (
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant="secondary" className="gap-1">
+            <Search className="h-3 w-3" />
+            Searching: &quot;{query}&quot;
+          </Badge>
+          <button
+            onClick={clearSearch}
+            className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Clear search
+          </button>
+        </div>
+      )}
+
+      {/* Filters Section - Collapsible */}
+      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <div className="flex items-center justify-between rounded-lg border p-3">
+          <CollapsibleTrigger asChild>
+            <button className="flex items-center gap-2 text-sm font-medium hover:text-primary">
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  filtersOpen && "rotate-180"
+                )}
+              />
+            </button>
+          </CollapsibleTrigger>
+
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <Select
+              value={sortBy}
+              onValueChange={(value) => {
+                setSortBy(value as SortBy);
+              }}
+            >
+              <SelectTrigger className="w-[150px] h-9">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <CollapsibleContent>
+          <div className="mt-3 rounded-lg border p-4">
+            {/* Filter grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any status</SelectItem>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs text-muted-foreground">
+                  Rating min
+                </Label>
+                <Select value={ratingMin} onValueChange={setRatingMin}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {ratings.map((rating) => (
+                      <SelectItem key={rating} value={rating}>
+                        {rating}+ stars
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs text-muted-foreground">
+                  Rating max
+                </Label>
+                <Select value={ratingMax} onValueChange={setRatingMax}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {ratings.map((rating) => (
+                      <SelectItem key={rating} value={rating}>
+                        {rating} stars
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs text-muted-foreground">
+                  Date from
+                </Label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(event) => setDateFrom(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs text-muted-foreground">Date to</Label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(event) => setDateTo(event.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t">
+              <Button size="sm" onClick={applyFilters}>
+                Apply Filters
+              </Button>
+              {hasActiveFilters && (
+                <Button size="sm" variant="ghost" onClick={clearFilters}>
+                  <X className="mr-1 h-3 w-3" />
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
