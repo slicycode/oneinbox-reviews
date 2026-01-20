@@ -147,13 +147,12 @@ export default async function DashboardPage() {
     });
 
   // Get most recent reviews (limit 5)
-  const recentReviews = await db
+  const recentReviewRows = await db
     .select({
       id: reviews.id,
       rating: reviews.rating,
       content: reviews.content,
       authorName: reviews.authorName,
-      reviewCreatedAt: reviews.reviewCreatedAt,
     })
     .from(reviews)
     .where(
@@ -164,6 +163,12 @@ export default async function DashboardPage() {
     )
     .orderBy(desc(reviews.reviewCreatedAt))
     .limit(5);
+
+  const recentReviews = recentReviewRows.map((row) => ({
+    ...row,
+    content: row.content ?? "",
+    authorName: row.authorName ?? null,
+  }));
 
   // Calculate usage percentage
   const maxReviews = planLimits.maxReviews;
