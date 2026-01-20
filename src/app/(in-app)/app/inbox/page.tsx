@@ -5,6 +5,7 @@ import { reviews } from "@/db/schema/reviews";
 import { reviewExports } from "@/db/schema/review-exports";
 import { reviewSyncStatus } from "@/db/schema/review-sync-status";
 import { alertSettings } from "@/db/schema/alert-settings";
+import { subscriptions } from "@/db/schema/subscriptions";
 import { and, eq, desc, sql, gte, lte } from "drizzle-orm";
 import { ReviewList } from "@/features/inbox/review-list";
 import { ReviewSyncButton } from "@/features/inbox/review-sync-button";
@@ -12,6 +13,7 @@ import { ReviewFilters } from "@/features/inbox/review-filters";
 import { ExportHistory } from "@/features/inbox/export-history";
 import { ExportCsvButton } from "@/features/inbox/export-csv-button";
 import { EmailAlertsForm } from "@/features/alerts/email-alerts-form";
+import { UpgradeBanner } from "@/components/ui/upgrade-banner";
 import { appConfig } from "@/lib/config";
 import { DEFAULT_NEGATIVE_REVIEW_THRESHOLD } from "@/lib/alerts/constants";
 import {
@@ -19,6 +21,7 @@ import {
   type ReviewFiltersInput,
 } from "@/lib/validations/review-filters.schema";
 import { getInboxSyncSummary } from "@/lib/reviews/sync-summary";
+import { isActiveSubscription } from "@/lib/subscriptions/state-machine";
 
 export default async function InboxPage({
   searchParams,
@@ -181,6 +184,20 @@ export default async function InboxPage({
     DEFAULT_NEGATIVE_REVIEW_THRESHOLD;
   const alertsPaused = alertSettingsRow?.alertsPaused ?? false;
 
+  // Fetch subscription for upgrade banner
+  const subscriptionRow = await db
+    .select({
+      status: subscriptions.status,
+      planTier: subscriptions.planTier,
+    })
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, session.user.id))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  const isFreePlan =
+    !subscriptionRow || !isActiveSubscription(subscriptionRow.status);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -212,11 +229,19 @@ export default async function InboxPage({
           <ReviewSyncButton initialCooldownSeconds={cooldownSeconds} />
         </div>
       </div>
+      {isFreePlan && (
+        <UpgradeBanner
+          feature="Unlimited reviews and email alerts"
+          currentPlan="Free"
+          message="Upgrade for unlimited reviews and email alerts"
+        />
+      )}
       <ReviewFilters defaultValues={filters} />
       <EmailAlertsForm
         initialEnabled={emailAlertsEnabled}
         initialThreshold={negativeReviewThreshold}
         initialPaused={alertsPaused}
+        isFreePlan={isFreePlan}
       />
       <ExportHistory items={exportHistory} />
       <ReviewList reviews={reviewData} />

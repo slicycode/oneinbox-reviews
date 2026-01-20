@@ -16,6 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UpgradeBanner } from "@/components/ui/upgrade-banner";
 import { alertSettingsSchema } from "@/lib/validations/alert-settings.schema";
 
 type AlertSettingsFormValues = {
@@ -28,12 +29,14 @@ interface EmailAlertsFormProps {
   initialEnabled: boolean;
   initialThreshold: number;
   initialPaused: boolean;
+  isFreePlan?: boolean;
 }
 
 export function EmailAlertsForm({
   initialEnabled,
   initialThreshold,
   initialPaused,
+  isFreePlan = false,
 }: EmailAlertsFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -91,6 +94,14 @@ export function EmailAlertsForm({
           Alerts are off by default. Enable to receive emails when new reviews are
           ingested.
         </p>
+        {isFreePlan && (
+          <UpgradeBanner
+            feature="Email alerts"
+            currentPlan="Free"
+            message="Email alerts are a Starter feature"
+            variant="subtle"
+          />
+        )}
         <FormField
           control={form.control}
           name="emailAlertsEnabled"

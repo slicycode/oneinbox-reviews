@@ -102,27 +102,27 @@
 ---
 
 ## Story 4: soft-gating-and-upgrade-ctas
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETE
 
 ### Tasks:
 
-- [ ] **TASK-4.1:** Create UpgradeBanner component
+- [x] **TASK-4.1:** Create UpgradeBanner component
   - File: `src/components/ui/upgrade-banner.tsx`
   - Props: { feature: string, currentPlan: string }
   - Style: Gentle, non-intrusive
 
-- [ ] **TASK-4.2:** Add upgrade CTA to inbox (free users)
+- [x] **TASK-4.2:** Add upgrade CTA to inbox (free users)
   - Location: Review inbox page
   - Condition: Show if planTier === 'free'
   - Message: "Upgrade for unlimited reviews and email alerts"
 
-- [ ] **TASK-4.3:** Add upgrade CTA to alerts (free users)
+- [x] **TASK-4.3:** Add upgrade CTA to alerts (free users)
   - Location: Alerts settings page
   - Condition: Show if planTier === 'free'
   - Message: "Email alerts are a Starter feature"
 
-- [ ] **TASK-4.4:** Create billing settings page
-  - File: `src/app/(dashboard)/settings/billing/page.tsx`
+- [x] **TASK-4.4:** Create billing settings page
+  - File: `src/app/(in-app)/app/settings/billing/page.tsx`
   - Show: Current plan, usage, upgrade/cancel buttons
   - Pattern: Follow existing settings page structure
 

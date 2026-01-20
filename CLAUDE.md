@@ -32,3 +32,19 @@ Example: `feat(sprint-2): TASK-2.1 create plan configuration`
 1. Add `⚠️ BLOCKED: reason` under the task
 2. Move to next unblocked task
 3. Flag for human review
+
+## Task Management
+
+Primary source: `TASKS.md`
+Visual sync: Linear (via MCP)
+
+When completing a task:
+1. Update TASKS.md: `- [x] TASK-X.X`
+2. Call Linear MCP: `linear_update_issue` with status "Done"
+
+When starting a task:
+1. Read TASKS.md for next task
+2. Call Linear MCP: `linear_update_issue` with status "In Progress"
+3. Implement the task
+
+This keeps both systems in sync.
