@@ -13,6 +13,11 @@ export const GET = withAuthRequired(async (_req, context) => {
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
       alertsPaused: alertSettings.alertsPaused,
+      notificationFrequency: alertSettings.notificationFrequency,
+      notifyOnAllReviews: alertSettings.notifyOnAllReviews,
+      quietHoursEnabled: alertSettings.quietHoursEnabled,
+      quietHoursStart: alertSettings.quietHoursStart,
+      quietHoursEnd: alertSettings.quietHoursEnd,
     })
     .from(alertSettings)
     .where(eq(alertSettings.userId, context.session.user.id))
@@ -24,6 +29,11 @@ export const GET = withAuthRequired(async (_req, context) => {
     negativeReviewThreshold:
       settings?.negativeReviewThreshold ?? DEFAULT_NEGATIVE_REVIEW_THRESHOLD,
     alertsPaused: settings?.alertsPaused ?? false,
+    notificationFrequency: settings?.notificationFrequency ?? "immediate",
+    notifyOnAllReviews: settings?.notifyOnAllReviews ?? false,
+    quietHoursEnabled: settings?.quietHoursEnabled ?? false,
+    quietHoursStart: settings?.quietHoursStart ?? "22:00",
+    quietHoursEnd: settings?.quietHoursEnd ?? "08:00",
   });
 });
 
@@ -55,6 +65,7 @@ export const PUT = withAuthRequired(async (req, context) => {
   }
 
   const now = new Date();
+
   const settings = await db
     .insert(alertSettings)
     .values({
@@ -62,6 +73,11 @@ export const PUT = withAuthRequired(async (req, context) => {
       emailAlertsEnabled: parsed.data.emailAlertsEnabled,
       negativeReviewThreshold: parsed.data.negativeReviewThreshold,
       alertsPaused: parsed.data.alertsPaused,
+      notificationFrequency: parsed.data.notificationFrequency ?? "immediate",
+      notifyOnAllReviews: parsed.data.notifyOnAllReviews ?? false,
+      quietHoursEnabled: parsed.data.quietHoursEnabled ?? false,
+      quietHoursStart: parsed.data.quietHoursStart ?? "22:00",
+      quietHoursEnd: parsed.data.quietHoursEnd ?? "08:00",
       createdAt: now,
       updatedAt: now,
     })
@@ -71,6 +87,11 @@ export const PUT = withAuthRequired(async (req, context) => {
         emailAlertsEnabled: parsed.data.emailAlertsEnabled,
         negativeReviewThreshold: parsed.data.negativeReviewThreshold,
         alertsPaused: parsed.data.alertsPaused,
+        notificationFrequency: parsed.data.notificationFrequency ?? "immediate",
+        notifyOnAllReviews: parsed.data.notifyOnAllReviews ?? false,
+        quietHoursEnabled: parsed.data.quietHoursEnabled ?? false,
+        quietHoursStart: parsed.data.quietHoursStart ?? "22:00",
+        quietHoursEnd: parsed.data.quietHoursEnd ?? "08:00",
         updatedAt: now,
       },
     })
@@ -78,6 +99,11 @@ export const PUT = withAuthRequired(async (req, context) => {
       emailAlertsEnabled: alertSettings.emailAlertsEnabled,
       negativeReviewThreshold: alertSettings.negativeReviewThreshold,
       alertsPaused: alertSettings.alertsPaused,
+      notificationFrequency: alertSettings.notificationFrequency,
+      notifyOnAllReviews: alertSettings.notifyOnAllReviews,
+      quietHoursEnabled: alertSettings.quietHoursEnabled,
+      quietHoursStart: alertSettings.quietHoursStart,
+      quietHoursEnd: alertSettings.quietHoursEnd,
     })
     .then((rows) => rows[0]);
 
@@ -85,5 +111,10 @@ export const PUT = withAuthRequired(async (req, context) => {
     emailAlertsEnabled: settings.emailAlertsEnabled,
     negativeReviewThreshold: settings.negativeReviewThreshold,
     alertsPaused: settings.alertsPaused,
+    notificationFrequency: settings.notificationFrequency,
+    notifyOnAllReviews: settings.notifyOnAllReviews,
+    quietHoursEnabled: settings.quietHoursEnabled,
+    quietHoursStart: settings.quietHoursStart,
+    quietHoursEnd: settings.quietHoursEnd,
   });
 });
