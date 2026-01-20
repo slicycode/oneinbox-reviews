@@ -26,6 +26,7 @@ interface ReviewListProps {
   totalCount?: number;
   limit?: number | null;
   isFreePlan?: boolean;
+  retentionDays?: number;
 }
 
 const statusLabel: Record<ReviewListItem["status"], string> = {
@@ -39,6 +40,7 @@ export function ReviewList({
   totalCount,
   limit,
   isFreePlan,
+  retentionDays,
 }: ReviewListProps) {
   const [items, setItems] = React.useState(reviews);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
@@ -50,6 +52,7 @@ export function ReviewList({
     totalCount > (limit ?? 0);
   const displayedCount = items.length;
   const hasLimit = limit !== null && limit !== undefined;
+  const showRetentionInfo = isFreePlan && retentionDays !== undefined;
 
   React.useEffect(() => {
     setItems(reviews);
@@ -107,18 +110,23 @@ export function ReviewList({
 
   return (
     <div className="flex flex-col gap-4">
-      {hasLimit && totalCount !== undefined && (
-        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2">
-          <span className="text-sm text-muted-foreground">
-            Showing {displayedCount} of {totalCount} reviews
-            {showLimitWarning && ` (limited to ${limit} on Free plan)`}
-          </span>
-          {showLimitWarning && (
+      {(hasLimit || showRetentionInfo) && totalCount !== undefined && (
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/50 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+            <span>
+              Showing {displayedCount} of {totalCount} reviews
+              {showLimitWarning && ` (limited to ${limit} on Free plan)`}
+            </span>
+            {showRetentionInfo && (
+              <span>Data retention: {retentionDays} days on Free plan</span>
+            )}
+          </div>
+          {(showLimitWarning || showRetentionInfo) && (
             <a
               href="/app/settings/billing"
               className="text-sm font-medium text-primary hover:underline"
             >
-              Upgrade for unlimited
+              Upgrade for more
             </a>
           )}
         </div>

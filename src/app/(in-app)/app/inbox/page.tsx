@@ -66,7 +66,16 @@ export default async function InboxPage({
   const planLimits = await getUserPlanLimits(session.user.id);
   const reviewLimit = planLimits.maxReviews ?? 1000; // Default to 1000 if unlimited
 
-  const conditions = [eq(reviews.userId, session.user.id)];
+  // Calculate retention cutoff date
+  const retentionCutoffDate = new Date(
+    Date.now() - planLimits.retentionDays * 24 * 60 * 60 * 1000,
+  );
+
+  const conditions = [
+    eq(reviews.userId, session.user.id),
+    // Enforce data retention - only show reviews within retention period
+    gte(reviews.reviewCreatedAt, retentionCutoffDate),
+  ];
   if (filters.ratingMin !== undefined) {
     conditions.push(gte(reviews.rating, filters.ratingMin));
   }
@@ -261,6 +270,7 @@ export default async function InboxPage({
         totalCount={totalReviewCount}
         limit={planLimits.maxReviews}
         isFreePlan={isFreePlan}
+        retentionDays={planLimits.retentionDays}
       />
     </div>
   );

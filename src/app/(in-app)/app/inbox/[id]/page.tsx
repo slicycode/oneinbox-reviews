@@ -149,6 +149,36 @@ export default async function ReviewDetailPage({
     }
   }
 
+  // Check if this review is within the user's data retention period
+  const retentionCutoffDate = new Date(
+    Date.now() - planLimits.retentionDays * 24 * 60 * 60 * 1000,
+  );
+  if (review.reviewCreatedAt < retentionCutoffDate) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/app/inbox">Back to Inbox</Link>
+          </Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Review not accessible</CardTitle>
+            <CardDescription>
+              This review is outside your plan&apos;s {planLimits.retentionDays}
+              -day data retention period. Upgrade for longer data retention.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/app/settings/billing">Upgrade now</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Ownership check is handled in the query above.
 
   const responseData = responseRows.map((row) => ({

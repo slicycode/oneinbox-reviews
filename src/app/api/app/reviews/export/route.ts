@@ -53,7 +53,20 @@ export const GET = withAuthRequired(async (req, context) => {
     }
   }
 
-  const conditions = [eq(reviews.userId, context.session.user.id)];
+  // Get user's plan limits for review enforcement
+  const planLimits = await getUserPlanLimits(context.session.user.id);
+  const reviewLimit = planLimits.maxReviews ?? 10000; // Default high limit if unlimited
+
+  // Calculate retention cutoff date
+  const retentionCutoffDate = new Date(
+    Date.now() - planLimits.retentionDays * 24 * 60 * 60 * 1000,
+  );
+
+  const conditions = [
+    eq(reviews.userId, context.session.user.id),
+    // Enforce data retention
+    gte(reviews.reviewCreatedAt, retentionCutoffDate),
+  ];
   if (filters.ratingMin !== undefined) {
     conditions.push(gte(reviews.rating, filters.ratingMin));
   }
@@ -72,10 +85,6 @@ export const GET = withAuthRequired(async (req, context) => {
       sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`,
     );
   }
-
-  // Get user's plan limits for review enforcement
-  const planLimits = await getUserPlanLimits(context.session.user.id);
-  const reviewLimit = planLimits.maxReviews ?? 10000; // Default high limit if unlimited
 
   const rows = await db
     .select({
