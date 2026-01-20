@@ -12,6 +12,7 @@ import { allocatePlanCredits } from "@/lib/credits/allocatePlanCredits";
 import { addCredits } from "@/lib/credits/recalculate";
 import { CreditType } from "@/lib/credits/credits";
 import { Webhook } from "standardwebhooks";
+import { plansConfig, type PlanTier } from "@/lib/plans/config";
 
 class DodoPaymentsWebhookHandler {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -220,6 +221,23 @@ class DodoPaymentsWebhookHandler {
   }
 
   async _getPlanFromDodoProductId(productId: string) {
+    // First, try to find the plan tier from the config (env vars)
+    const planTierFromConfig = this._getPlanTierFromConfig(productId);
+
+    if (planTierFromConfig) {
+      // Found in config - now get the plan from database by codename
+      const plan = await db
+        .select()
+        .from(plans)
+        .where(eq(plans.codename, planTierFromConfig))
+        .limit(1);
+
+      if (plan.length > 0) {
+        return plan[0];
+      }
+    }
+
+    // Fallback: try to find in database by product ID columns
     try {
       const plan = await db
         .select()
@@ -234,6 +252,7 @@ class DodoPaymentsWebhookHandler {
         .limit(1);
 
       if (plan.length === 0) {
+        console.log(`No plan found for Dodo product ID: ${productId}`);
         return null;
       }
 
@@ -241,6 +260,19 @@ class DodoPaymentsWebhookHandler {
     } catch (error) {
       throw error;
     }
+  }
+
+  _getPlanTierFromConfig(productId: string): PlanTier | null {
+    // Search through plansConfig to find which plan has this product ID
+    for (const [tier, config] of Object.entries(plansConfig)) {
+      if (
+        config.pricing.monthly.dodoProductId === productId ||
+        config.pricing.yearly.dodoProductId === productId
+      ) {
+        return tier as PlanTier;
+      }
+    }
+    return null;
   }
 
   async _upsertSubscription(

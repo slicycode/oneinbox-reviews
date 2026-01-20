@@ -111,7 +111,7 @@ export default async function DashboardPage() {
       and(
         eq(reviews.userId, userId),
         gte(reviews.reviewCreatedAt, fourteenDaysAgo),
-        sql`${reviews.reviewCreatedAt} < ${sevenDaysAgo}`,
+        sql`${reviews.reviewCreatedAt} < ${sevenDaysAgo.toISOString()}`,
       ),
     )
     .then((rows) => rows[0]?.count ?? 0);
