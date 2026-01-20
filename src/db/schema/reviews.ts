@@ -51,5 +51,15 @@ export const reviews = pgTable(
       table.provider,
       table.providerReviewId
     ),
+    // Composite index for inbox listing (covers userId filter + reviewCreatedAt ordering)
+    userReviewDateIdx: index("reviews_user_review_date_idx").on(
+      table.userId,
+      table.reviewCreatedAt
+    ),
+    // Composite index for rating-based sorting
+    userRatingIdx: index("reviews_user_rating_idx").on(
+      table.userId,
+      table.rating
+    ),
   })
 );

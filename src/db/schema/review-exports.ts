@@ -34,5 +34,10 @@ export const reviewExports = pgTable(
     userIdIdx: index("review_exports_user_id_idx").on(table.userId),
     statusIdx: index("review_exports_status_idx").on(table.status),
     createdAtIdx: index("review_exports_created_at_idx").on(table.createdAt),
+    // Composite index for export history listing (userId + createdAt ordering)
+    userCreatedAtIdx: index("review_exports_user_created_at_idx").on(
+      table.userId,
+      table.createdAt
+    ),
   })
 );
