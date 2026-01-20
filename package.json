@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit",
     "script": "tsx --import './scripts/_bootstrap/index.ts'",
     "seed:reviews": "tsx --import \"./scripts/_bootstrap/index.ts\" ./scripts/seed-reviews.ts",
     "postinstall": "fumadocs-mdx"
