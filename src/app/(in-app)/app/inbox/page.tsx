@@ -22,6 +22,7 @@ import {
 } from "@/lib/validations/review-filters.schema";
 import { getInboxSyncSummary } from "@/lib/reviews/sync-summary";
 import { isActiveSubscription } from "@/lib/subscriptions/state-machine";
+import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
 
 export default async function InboxPage({
   searchParams,
@@ -61,6 +62,10 @@ export default async function InboxPage({
     ? `/api/app/reviews/export?${exportParams.toString()}`
     : "/api/app/reviews/export";
 
+  // Get user's plan limits for review enforcement
+  const planLimits = await getUserPlanLimits(session.user.id);
+  const reviewLimit = planLimits.maxReviews ?? 1000; // Default to 1000 if unlimited
+
   const conditions = [eq(reviews.userId, session.user.id)];
   if (filters.ratingMin !== undefined) {
     conditions.push(gte(reviews.rating, filters.ratingMin));
@@ -77,9 +82,16 @@ export default async function InboxPage({
   if (filters.query) {
     const term = `%${filters.query}%`;
     conditions.push(
-      sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`
+      sql`${reviews.content} ILIKE ${term} OR COALESCE(${reviews.authorName}, '') ILIKE ${term}`,
     );
   }
+
+  // Get total review count for the user (without filters)
+  const totalReviewCount = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(reviews)
+    .where(eq(reviews.userId, session.user.id))
+    .then((rows) => rows[0]?.count ?? 0);
 
   const reviewRows = await db
     .select({
@@ -93,7 +105,7 @@ export default async function InboxPage({
     .from(reviews)
     .where(and(...conditions))
     .orderBy(desc(reviews.reviewCreatedAt))
-    .limit(50);
+    .limit(reviewLimit);
 
   const reviewData = reviewRows.map((row) => ({
     ...row,
@@ -135,8 +147,8 @@ export default async function InboxPage({
     .where(
       and(
         eq(reviewSyncStatus.userId, session.user.id),
-        eq(reviewSyncStatus.provider, "google")
-      )
+        eq(reviewSyncStatus.provider, "google"),
+      ),
     )
     .limit(1)
     .then((rows) => rows[0] ?? null);
@@ -244,7 +256,12 @@ export default async function InboxPage({
         isFreePlan={isFreePlan}
       />
       <ExportHistory items={exportHistory} />
-      <ReviewList reviews={reviewData} />
+      <ReviewList
+        reviews={reviewData}
+        totalCount={totalReviewCount}
+        limit={planLimits.maxReviews}
+        isFreePlan={isFreePlan}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { auth, signIn } from "@/auth";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";
 import { reviewResponses } from "@/db/schema/review-responses";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import Link from "next/link";
 import {
   Card,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReviewResponseForm } from "@/features/inbox/review-response-form";
+import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
 
 export default async function ReviewDetailPage({
   params,
@@ -60,8 +61,8 @@ export default async function ReviewDetailPage({
       and(
         eq(reviewResponses.reviewId, id),
         eq(reviewResponses.userId, session.user.id),
-        ne(reviewResponses.status, "draft")
-      )
+        ne(reviewResponses.status, "draft"),
+      ),
     )
     .orderBy(desc(reviewResponses.createdAt));
 
@@ -76,8 +77,8 @@ export default async function ReviewDetailPage({
       and(
         eq(reviewResponses.reviewId, id),
         eq(reviewResponses.userId, session.user.id),
-        eq(reviewResponses.status, "draft")
-      )
+        eq(reviewResponses.status, "draft"),
+      ),
     )
     .orderBy(desc(reviewResponses.updatedAt))
     .limit(1)
@@ -103,6 +104,51 @@ export default async function ReviewDetailPage({
     );
   }
 
+  // Check if this review is within the user's plan limit
+  const planLimits = await getUserPlanLimits(session.user.id);
+  if (planLimits.maxReviews !== null) {
+    // Check if this review is among the user's allowed reviews (most recent N)
+    const isWithinLimit = await db
+      .select({ exists: sql<boolean>`true` })
+      .from(
+        db
+          .select({ id: reviews.id })
+          .from(reviews)
+          .where(eq(reviews.userId, session.user.id))
+          .orderBy(desc(reviews.reviewCreatedAt))
+          .limit(planLimits.maxReviews)
+          .as("allowed_reviews"),
+      )
+      .where(sql`allowed_reviews.id = ${id}`)
+      .then((rows) => rows.length > 0);
+
+    if (!isWithinLimit) {
+      return (
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/app/inbox">Back to Inbox</Link>
+            </Button>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Review not accessible</CardTitle>
+              <CardDescription>
+                This review is outside your plan&apos;s {planLimits.maxReviews}{" "}
+                review limit. Upgrade to access all your reviews.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href="/app/settings/billing">Upgrade now</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+  }
+
   // Ownership check is handled in the query above.
 
   const responseData = responseRows.map((row) => ({
@@ -113,9 +159,9 @@ export default async function ReviewDetailPage({
   }));
   const draftData = draftRow
     ? {
-      ...draftRow,
-      updatedAt: draftRow.updatedAt.toISOString(),
-    }
+        ...draftRow,
+        updatedAt: draftRow.updatedAt.toISOString(),
+      }
     : null;
 
   return (
@@ -174,11 +220,7 @@ export default async function ReviewDetailPage({
           {review.replyUrl && review.provider === "google" ? (
             <div>
               <Button asChild variant="outline" size="sm">
-                <a
-                  href={review.replyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={review.replyUrl} target="_blank" rel="noreferrer">
                   Reply on platform
                 </a>
               </Button>

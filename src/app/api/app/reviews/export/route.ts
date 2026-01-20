@@ -6,6 +6,7 @@ import { reviewExports } from "@/db/schema/review-exports";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { reviewFiltersSchema } from "@/lib/validations/review-filters.schema";
 import { enforceFeatureAccess } from "@/lib/subscriptions/api-enforcement";
+import { getUserPlanLimits } from "@/lib/subscriptions/access-control";
 
 const sanitizeCsvValue = (value: string) => {
   const stripped = value.replace(/^[\t\r\n ]+/, "");
@@ -72,6 +73,10 @@ export const GET = withAuthRequired(async (req, context) => {
     );
   }
 
+  // Get user's plan limits for review enforcement
+  const planLimits = await getUserPlanLimits(context.session.user.id);
+  const reviewLimit = planLimits.maxReviews ?? 10000; // Default high limit if unlimited
+
   const rows = await db
     .select({
       provider: reviews.provider,
@@ -83,7 +88,8 @@ export const GET = withAuthRequired(async (req, context) => {
     })
     .from(reviews)
     .where(and(...conditions))
-    .orderBy(desc(reviews.reviewCreatedAt));
+    .orderBy(desc(reviews.reviewCreatedAt))
+    .limit(reviewLimit);
 
   const header = [
     "provider",

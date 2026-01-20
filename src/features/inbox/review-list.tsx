@@ -23,6 +23,9 @@ interface ReviewListItem {
 
 interface ReviewListProps {
   reviews: ReviewListItem[];
+  totalCount?: number;
+  limit?: number | null;
+  isFreePlan?: boolean;
 }
 
 const statusLabel: Record<ReviewListItem["status"], string> = {
@@ -31,15 +34,31 @@ const statusLabel: Record<ReviewListItem["status"], string> = {
   needs_follow_up: "Needs follow-up",
 };
 
-export function ReviewList({ reviews }: ReviewListProps) {
+export function ReviewList({
+  reviews,
+  totalCount,
+  limit,
+  isFreePlan,
+}: ReviewListProps) {
   const [items, setItems] = React.useState(reviews);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
+
+  const showLimitWarning =
+    isFreePlan &&
+    limit !== null &&
+    totalCount !== undefined &&
+    totalCount > (limit ?? 0);
+  const displayedCount = items.length;
+  const hasLimit = limit !== null && limit !== undefined;
 
   React.useEffect(() => {
     setItems(reviews);
   }, [reviews]);
 
-  const updateStatus = async (reviewId: string, status: ReviewListItem["status"]) => {
+  const updateStatus = async (
+    reviewId: string,
+    status: ReviewListItem["status"],
+  ) => {
     setUpdating((prev) => ({ ...prev, [reviewId]: true }));
     try {
       const response = await fetch(`/api/app/reviews/${reviewId}/status`, {
@@ -57,8 +76,8 @@ export function ReviewList({ reviews }: ReviewListProps) {
         await response.json();
       setItems((prev) =>
         prev.map((item) =>
-          item.id === data.id ? { ...item, status: data.status } : item
-        )
+          item.id === data.id ? { ...item, status: data.status } : item,
+        ),
       );
     } catch (error) {
       console.error("Failed to update status", error);
@@ -75,8 +94,8 @@ export function ReviewList({ reviews }: ReviewListProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            If you just connected Google, your first sync can take a few minutes.
-            You can refresh or check your integration status.
+            If you just connected Google, your first sync can take a few
+            minutes. You can refresh or check your integration status.
           </p>
           <Button asChild className="mt-4" size="sm">
             <Link href="/app/integrations">Go to integrations</Link>
@@ -88,6 +107,22 @@ export function ReviewList({ reviews }: ReviewListProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {hasLimit && totalCount !== undefined && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2">
+          <span className="text-sm text-muted-foreground">
+            Showing {displayedCount} of {totalCount} reviews
+            {showLimitWarning && ` (limited to ${limit} on Free plan)`}
+          </span>
+          {showLimitWarning && (
+            <a
+              href="/app/settings/billing"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Upgrade for unlimited
+            </a>
+          )}
+        </div>
+      )}
       {items.map((review) => (
         <Card key={review.id}>
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -113,7 +148,9 @@ export function ReviewList({ reviews }: ReviewListProps) {
                 <SelectContent>
                   <SelectItem value="unread">Unread</SelectItem>
                   <SelectItem value="responded">Responded</SelectItem>
-                  <SelectItem value="needs_follow_up">Needs follow-up</SelectItem>
+                  <SelectItem value="needs_follow_up">
+                    Needs follow-up
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Button asChild size="sm" variant="outline">
