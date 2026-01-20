@@ -14,21 +14,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Inbox,
   Link2,
   Settings,
-  CreditCard,
   Menu,
-  ChevronDown,
 } from "lucide-react";
 
 interface NavItem {
@@ -43,9 +35,11 @@ const mainNavItems: NavItem[] = [
   { label: "Integrations", href: "/app/integrations", icon: Link2 },
 ];
 
-const settingsNavItems: NavItem[] = [
-  { label: "Billing", href: "/app/settings/billing", icon: CreditCard },
-];
+const settingsNavItem: NavItem = {
+  label: "Settings",
+  href: "/app/settings",
+  icon: Settings,
+};
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -90,36 +84,19 @@ export function AppHeader() {
                 );
               })}
 
-              {/* Settings Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                      pathname.startsWith("/app/settings")
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Settings className="h-4 w-4" />
-                    Settings
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {settingsNavItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <DropdownMenuItem key={item.href} asChild>
-                        <Link href={item.href} className="cursor-pointer">
-                          <Icon className="mr-2 h-4 w-4" />
-                          {item.label}
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Settings Link */}
+              <Link
+                href={settingsNavItem.href}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  pathname.startsWith("/app/settings")
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                <Settings className="h-4 w-4" />
+                {settingsNavItem.label}
+              </Link>
             </nav>
           </div>
 
@@ -166,29 +143,19 @@ export function AppHeader() {
                     );
                   })}
                   <div className="border-t my-2" />
-                  <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Settings
-                  </p>
-                  {settingsNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                          active
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                  <Link
+                    href={settingsNavItem.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      isActive(settingsNavItem.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {settingsNavItem.label}
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
