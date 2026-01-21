@@ -33,12 +33,12 @@
   - Issue: Image uses `fill` prop with explicit h-10 w-10 classes (conflict)
   - Fix: Remove `fill`, add explicit `width={40} height={40}` props
 
-- [ ] **ONE-67**: Fix invalid HTML structure in super-admin users table
+- [x] **ONE-67**: Fix invalid HTML structure in super-admin users table
   - File: `src/app/super-admin/users/page.tsx:107-117`
   - Issue: Link wraps TableCell (invalid HTML)
   - Fix: Move Link inside TableCell, wrap Avatar and name with Link
 
-- [ ] **ONE-61**: Fix input font sizes to prevent iOS auto-zoom
+- [x] **ONE-61**: Fix input font sizes to prevent iOS auto-zoom
   - Files: `src/components/ui/input.tsx`, `src/components/ui/textarea.tsx`
   - Issue: Font sizes below 16px trigger iOS Safari zoom
   - Fix: Ensure all inputs use `text-base` (16px) on mobile
