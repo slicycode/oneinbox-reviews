@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      // Allow Tailus marketing images
+      {
+        protocol: "https",
+        hostname: "html.tailus.io",
+      },
     ],
   },
   async rewrites() {
