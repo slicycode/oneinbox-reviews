@@ -24,6 +24,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AlertTriangle, MoreVertical, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import useSWR from "swr";
@@ -56,6 +66,8 @@ export default function CouponsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
   const debouncedSearch = useDebounce(searchQuery, 500);
 
   const { data, isLoading, mutate } = useSWR<CouponsResponse>(
@@ -213,9 +225,8 @@ export default function CouponsPage() {
                         )}
                         <DropdownMenuItem
                           onClick={() => {
-                            if (confirm("Are you sure you want to delete this coupon?")) {
-                              deleteCoupon(coupon.id);
-                            }
+                            setCouponToDelete(coupon.id);
+                            setDeleteDialogOpen(true);
                           }}
                           className="text-destructive"
                         >
@@ -239,6 +250,30 @@ export default function CouponsPage() {
           onPageChange={setPage}
         />
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Coupon</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this coupon? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (couponToDelete) {
+                  deleteCoupon(couponToDelete);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 
