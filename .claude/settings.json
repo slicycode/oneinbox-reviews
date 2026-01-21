@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Creating/updating file: $FILE_PATH'",
+            "command": "sh -c 'file=\"$(echo \"$STDIN\" | jq -r .tool_input.file_path)\"; echo \"Creating/updating file: $file\"'",
             "timeout": 5
           }
         ],
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx prettier --write $FILE_PATH",
+            "command": "sh -c 'file=\"$(echo \"$STDIN\" | jq -r .tool_input.file_path)\"; if [ -n \"$file\" ] && [ -f \"$file\" ]; then npx prettier --write \"$file\" 2>/dev/null || true; fi'",
             "timeout": 10
           }
         ],
