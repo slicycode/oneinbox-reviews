@@ -23,9 +23,9 @@ export function ShareButton({ title, description }: ShareButtonProps) {
   return (
     <div className="flex items-center gap-4 mb-8">
       <Share2 className="w-5 h-5" />
-      <button 
+      <button
         onClick={handleShare}
-        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
       >
         Share this article
       </button>
