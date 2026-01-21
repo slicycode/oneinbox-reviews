@@ -104,8 +104,11 @@ export default function UsersPage() {
             ) : (
               data?.users.map((user) => (
                 <TableRow key={user.id}>
-                  <Link href={`/super-admin/users/${user.id}`}>
-                    <TableCell className="flex items-center gap-2">
+                  <TableCell>
+                    <Link
+                      href={`/super-admin/users/${user.id}`}
+                      className="flex items-center gap-2"
+                    >
                       <Avatar>
                         <AvatarImage src={user.image || undefined} />
                         <AvatarFallback>
@@ -113,8 +116,8 @@ export default function UsersPage() {
                         </AvatarFallback>
                       </Avatar>
                       <span>{user.name || "Unnamed"}</span>
-                    </TableCell>
-                  </Link>
+                    </Link>
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={user.active ? "default" : "secondary"}>
