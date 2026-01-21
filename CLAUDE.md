@@ -62,6 +62,44 @@ Component → Server Action or API Route → Service (src/lib/*) → Drizzle →
 3. **Lazy load heavy components** - Use `dynamic()` for charts, editors, modals
 4. **Avoid prop drilling** - Use context only when truly needed, prefer composition
 
+## Plan Mode
+
+When planning features or fixes, follow this loop: **Plan → Execute → Test → Commit**
+
+### Plan Rules
+- Make plans extremely concise. Sacrifice grammar for concision.
+- Use bullet points, not paragraphs.
+- List files to modify with one-line descriptions.
+- End with unresolved questions, if any.
+
+### Plan Format
+```md
+## Goal
+[One sentence]
+
+## Changes
+- `path/to/file.ts` - what changes
+- `path/to/other.ts` - what changes
+
+## Steps
+1. First action
+2. Second action
+3. Verify with `pnpm run type-check`
+
+## Questions
+- Any unresolved decisions?
+```
+
+### When to Plan
+- New features (always)
+- Multi-file changes (always)
+- Bug fixes affecting >2 files (recommended)
+- Simple single-file fixes (skip, just do it)
+
+### Plan Storage
+- Write complex plans to `PLAN.md` (gitignored)
+- Plans persist across `/clear` for context recovery
+
 ## References
 
 - File patterns: [docs/CONVENTIONS.md](docs/CONVENTIONS.md)

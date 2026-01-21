@@ -45,3 +45,9 @@ next-env.d.ts
 # _bmad/
 # _bmad-output/
 .source/
+PLAN.md
+
+# ralph related files
+progress.txt
+.archive/
+.agent/
