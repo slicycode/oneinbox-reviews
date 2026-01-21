@@ -75,29 +75,29 @@
   - Issue: Hover states get stuck on touch devices
   - Fix: Use `@media (hover: hover)` or Tailwind hover variant
 
-- [ ] **ONE-58**: Add prefers-reduced-motion support
+- [x] **ONE-58**: Add prefers-reduced-motion support
   - Files: text-effect.tsx, hero-section.tsx, infinite-slider.tsx
   - Issue: Animations don't respect user motion preferences
   - Fix: Add `motion-safe:` and `motion-reduce:` variants
 
-- [ ] **ONE-57**: Replace transition-all with transform/opacity
+- [x] **ONE-57**: Replace transition-all with transform/opacity
   - Files: tailwind.config.ts (accordion), hero-section.tsx
   - Issue: `transition-all` and height animations cause layout recalcs
   - Fix: Use only transform and opacity for animations
 
 ### Low Priority
 
-- [ ] **ONE-70**: Replace native img tags with Next.js Image
+- [x] **ONE-70**: Replace native img tags with Next.js Image
   - File: `src/components/tailark/pricing.tsx:47-74`
   - Issue: Native img tags miss optimization
   - Fix: Add domain to next.config, use Image component
 
-- [ ] **ONE-64**: Replace hardcoded colors with design tokens
+- [x] **ONE-64**: Replace hardcoded colors with design tokens
   - File: `src/components/share-button.tsx:28`
   - Issue: Uses `text-gray-600` instead of semantic tokens
   - Fix: Use `text-muted-foreground` and `text-foreground`
 
-- [ ] **ONE-56**: Fix animation durations exceeding 400ms
+- [x] **ONE-56**: Fix animation durations exceeding 400ms
   - Files: hero-section.tsx, text-effect.tsx, input-otp.tsx
   - Issue: Some animations exceed 400ms (feel sluggish)
   - Fix: Reduce to 150-400ms per Emil Kowalski guidelines
