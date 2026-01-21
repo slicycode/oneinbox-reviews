@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="#1a1a1a"/>
+
+  <!-- 5-pointed star - positioned above inbox -->
+  <path
+    d="M256 68 L278 140 L354 140 L294 184 L316 256 L256 212 L196 256 L218 184 L158 140 L234 140 Z"
+    fill="white"
+  />
+
+  <!-- Isometric inbox box -->
+  <!-- Left face (white) -->
+  <path
+    d="M112 264 L256 344 L256 432 L112 352 Z"
+    fill="white"
+  />
+
+  <!-- Right face (gray) -->
+  <path
+    d="M400 264 L256 344 L256 432 L400 352 Z"
+    fill="#808080"
+  />
+
+  <!-- Top opening - left (white) -->
+  <path
+    d="M112 264 L184 220 L256 264 L256 344 L112 264 Z"
+    fill="#e8e8e8"
+  />
+
+  <!-- Top opening - right (darker gray) -->
+  <path
+    d="M400 264 L328 220 L256 264 L256 344 L400 264 Z"
+    fill="#606060"
+  />
+</svg>
