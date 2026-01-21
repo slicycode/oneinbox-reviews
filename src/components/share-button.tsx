@@ -25,7 +25,7 @@ export function ShareButton({ title, description }: ShareButtonProps) {
       <Share2 className="w-5 h-5" />
       <button
         onClick={handleShare}
-        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+        className="text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
       >
         Share this article
       </button>
