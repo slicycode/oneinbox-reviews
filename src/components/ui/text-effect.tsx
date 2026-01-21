@@ -2,7 +2,8 @@
 import { cn } from '@/lib/utils';
 import {
   AnimatePresence,
-  motion
+  motion,
+  useReducedMotion,
 } from 'motion/react';
 import type {
   TargetAndTransition,
@@ -227,8 +228,14 @@ export function TextEffect({
   segmentTransition,
   style,
 }: TextEffectProps) {
+  const prefersReducedMotion = useReducedMotion();
   const segments = splitText(children, per);
   const MotionTag = motion[as as keyof typeof motion] as typeof motion.div;
+
+  // If user prefers reduced motion, render static content without animations
+  if (prefersReducedMotion) {
+    return React.createElement(as, { className, style }, children);
+  }
 
   const baseVariants = preset
     ? presetVariants[preset]

@@ -1,6 +1,6 @@
 'use client'
 import { cn } from '@/lib/utils'
-import { useMotionValue, animate, motion } from 'motion/react'
+import { useMotionValue, animate, motion, useReducedMotion } from 'motion/react'
 import { useState, useEffect } from 'react'
 import useMeasure from 'react-use-measure'
 
@@ -15,6 +15,7 @@ export type InfiniteSliderProps = {
 }
 
 export function InfiniteSlider({ children, gap = 16, speed = 100, speedOnHover, direction = 'horizontal', reverse = false, className }: InfiniteSliderProps) {
+    const prefersReducedMotion = useReducedMotion()
     const [currentSpeed, setCurrentSpeed] = useState(speed)
     const [ref, { width, height }] = useMeasure()
     const translation = useMotionValue(0)
@@ -22,6 +23,8 @@ export function InfiniteSlider({ children, gap = 16, speed = 100, speedOnHover, 
     const [key, setKey] = useState(0)
 
     useEffect(() => {
+        // Skip animations if user prefers reduced motion
+        if (prefersReducedMotion) return
         let controls
         const size = direction === 'horizontal' ? width : height
         const contentSize = size + gap
@@ -57,7 +60,7 @@ export function InfiniteSlider({ children, gap = 16, speed = 100, speedOnHover, 
         }
 
         return controls?.stop
-    }, [key, translation, currentSpeed, width, height, gap, isTransitioning, direction, reverse])
+    }, [key, translation, currentSpeed, width, height, gap, isTransitioning, direction, reverse, prefersReducedMotion])
 
     const hoverProps = speedOnHover
         ? {
