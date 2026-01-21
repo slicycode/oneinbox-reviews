@@ -2,6 +2,28 @@
 
 > Ralph picks tasks from this file. Check items off as they're completed.
 
+## ⚠️ SCOPE GUARDRAILS
+
+**Status:** Pre-Launch MVP (Sprint 5 - Design & Accessibility)
+
+### ONLY work on:
+- Tasks listed in this PRD
+- Bug fixes for existing features
+- Design/accessibility improvements
+
+### DO NOT:
+- Add new features not in this PRD
+- Work on Post-MVP features (analytics, AI responses, multi-platform, team features)
+- Refactor code beyond what's needed for the task
+- Add new dependencies without explicit task requirement
+- Touch authentication, payments, or core business logic
+
+### If blocked or unsure:
+- Skip the task, move to next one
+- Do NOT improvise solutions outside the PRD scope
+
+---
+
 ## Current Sprint: Design & Accessibility
 
 ### High Priority
