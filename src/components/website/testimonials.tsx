@@ -74,7 +74,8 @@ export function WebsiteTestimonials() {
                   className="h-10 w-10 rounded-full object-cover"
                   src={testimonial.image}
                   alt={testimonial.author}
-                  fill
+                  width={40}
+                  height={40}
                 />
                 <div>
                   <div className="font-semibold">{testimonial.author}</div>
