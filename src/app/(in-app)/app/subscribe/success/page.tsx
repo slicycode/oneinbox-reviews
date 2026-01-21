@@ -1,6 +1,6 @@
 import { PlanProvider } from "@/lib/plans/getSubscribeUrl";
 import SuccessRedirector from "./SuccessRedirector";
-import client from "@/lib/dodopayments/client";
+import { getDodoClient } from "@/lib/dodopayments/client";
 import ErrorRedirector from "./ErrorRedirector";
 
 export default async function SubscribeSuccessPage({
@@ -21,7 +21,7 @@ export default async function SubscribeSuccessPage({
       // Check if subscription is active
       if (subscription_id) {
         // Subscription Case
-        const subscription = await client.subscriptions.retrieve(
+        const subscription = await getDodoClient().subscriptions.retrieve(
           subscription_id
         );
         if (subscription.status !== "active") {
@@ -30,7 +30,7 @@ export default async function SubscribeSuccessPage({
       }
       // Payment Case
       if (payment_id) {
-        const payment = await client.payments.retrieve(payment_id);
+        const payment = await getDodoClient().payments.retrieve(payment_id);
         if (payment.status !== "succeeded") {
           return <ErrorRedirector />;
         }

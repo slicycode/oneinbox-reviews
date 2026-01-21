@@ -4,6 +4,11 @@ import "./globals.css";
 import { appConfig } from "@/lib/config";
 import Providers from "./Providers";
 
+// Force dynamic rendering globally to avoid prerendering issues with context providers
+// This is a workaround for Next.js 16 + React 19 prerendering bugs
+// See: https://github.com/vercel/next.js/issues/85668
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

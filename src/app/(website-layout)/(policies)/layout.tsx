@@ -1,3 +1,6 @@
+// Force dynamic rendering to avoid prerendering issues with context providers
+export const dynamic = "force-dynamic";
+
 interface PolicyLayoutProps {
   children: React.ReactNode;
 }

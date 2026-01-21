@@ -1,6 +1,6 @@
 import { creditsConfig } from "../credits/config";
 import { CreditType } from "../credits/credits";
-import client from "./client";
+import { getDodoClient } from "./client";
 import { countries } from "countries-list";
 interface CreateCheckoutSessionResponse {
   payment_link: string;
@@ -38,7 +38,7 @@ export const createOneTimePaymentCheckout = async (params: {
           create_new_customer: true,
         };
 
-    const response = await client.payments.create({
+    const response = await getDodoClient().payments.create({
       product_cart: [
         {
           product_id: productId,
@@ -106,7 +106,7 @@ export const createCreditCheckout = async (params: {
       amount: Math.round(totalPrice * 100), // Convert to cents
     };
 
-    const response = await client.payments.create({
+    const response = await getDodoClient().payments.create({
       product_cart: [productCartItem],
       customer,
       // @ts-expect-error - DodoPayments types are not updated
@@ -162,7 +162,7 @@ export const createSubscriptionCheckout = async (params: {
           create_new_customer: true,
         };
 
-    const response = await client.subscriptions.create({
+    const response = await getDodoClient().subscriptions.create({
       product_id: productId,
       quantity: 1,
       customer,
@@ -188,7 +188,7 @@ export const createSubscriptionCheckout = async (params: {
 
 export const getSubscription = async (subscriptionId: string) => {
   try {
-    const response = await client.subscriptions.retrieve(subscriptionId);
+    const response = await getDodoClient().subscriptions.retrieve(subscriptionId);
     return response;
   } catch (error) {
     console.error("Error fetching DodoPayments subscription:", error);
@@ -198,7 +198,7 @@ export const getSubscription = async (subscriptionId: string) => {
 
 export const cancelSubscription = async (subscriptionId: string) => {
   try {
-    const response = await client.subscriptions.update(subscriptionId, {
+    const response = await getDodoClient().subscriptions.update(subscriptionId, {
       status: "cancelled",
     });
     return response;
@@ -210,7 +210,7 @@ export const cancelSubscription = async (subscriptionId: string) => {
 
 export const resumeSubscription = async (subscriptionId: string) => {
   try {
-    const response = await client.subscriptions.update(subscriptionId, {
+    const response = await getDodoClient().subscriptions.update(subscriptionId, {
       status: "active",
     });
     return response;

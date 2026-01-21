@@ -1,4 +1,7 @@
 import { auth, signIn } from "@/auth";
+
+// Force dynamic rendering - this page requires auth and can't be prerendered
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { db } from "@/db";
 import { reviews } from "@/db/schema/reviews";

@@ -12,7 +12,12 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <Suspense>
         <SessionProvider>
           <SWRConfig value={{ fetcher }}>

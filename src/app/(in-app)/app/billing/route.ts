@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import stripe from "@/lib/stripe";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import client from "@/lib/dodopayments/client";
+import { getDodoClient } from "@/lib/dodopayments/client";
 import { paypalContext } from "@/db/schema/paypal";
 import { createPaddleCustomerPortalSession } from "@/lib/paddle";
 import { users } from "@/db/schema/user";
@@ -20,7 +20,7 @@ export const GET = withAuthRequired(async (req, context) => {
   const dodoCustomerId = user.dodoCustomerId;
   if (dodoCustomerId) {
     const customerPortalSession =
-      await client.customers.customerPortal.create(dodoCustomerId);
+      await getDodoClient().customers.customerPortal.create(dodoCustomerId);
     return redirect(customerPortalSession.link);
   }
 
