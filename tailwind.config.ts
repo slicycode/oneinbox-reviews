@@ -3,6 +3,9 @@ import type { Config } from "tailwindcss";
 export default {
   theme: {
     extend: {
+      zIndex: {
+        60: "60",
+      },
       fontFamily: {
         base: ["var(--font-public-sans)", "sans-serif"],
         heading: ["var(--font-public-sans)", "sans-serif"],
