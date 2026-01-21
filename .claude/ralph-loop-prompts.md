@@ -195,6 +195,31 @@ Shell-safe prompts for ralph-wiggum:ralph-loop. Avoid angle brackets, single quo
 /ralph-wiggum:ralph-loop Implement ONE-65: Optimize blur filter animations for performance. Find CSS blur filter usage in text-effect.tsx and other components. Replace expensive blur animations with opacity-only alternatives or use will-change hints. Test performance improvement. Commit as perf ONE-65 Optimize blur filter animations. Push to main and update Linear ONE-65 to Done. Output PROMISE ONE-65 COMPLETE when done. --completion-promise "ONE-65 COMPLETE" --max-iterations 10
 ```
 
+### ONE-66: Fix Image component in testimonials section
+```
+/ralph-wiggum:ralph-loop Implement ONE-66: Fix Image component in testimonials section. In src/components/website/testimonials.tsx lines 73-78, the Image uses fill prop with explicit h-10 w-10 classes which conflict. Remove fill prop and use explicit width and height props instead. Add width 40 and height 40 to the Image component. Remove the fill prop. Verify the image displays correctly. Commit as fix ONE-66 Fix Image component in testimonials section. Push to main and update Linear ONE-66 to Done. Output PROMISE ONE-66 COMPLETE when done. --completion-promise "ONE-66 COMPLETE" --max-iterations 8
+```
+
+### ONE-67: Fix invalid HTML structure in super-admin users table
+```
+/ralph-wiggum:ralph-loop Implement ONE-67: Fix invalid HTML structure in super-admin users table. In src/app/super-admin/users/page.tsx lines 107-117, Link wraps TableCell which creates invalid HTML. Move the Link inside the TableCell instead. The Avatar and user name should be wrapped by Link inside TableCell. Keep the same styling with flex and items-center. Commit as fix ONE-67 Fix invalid HTML in users table. Push to main and update Linear ONE-67 to Done. Output PROMISE ONE-67 COMPLETE when done. --completion-promise "ONE-67 COMPLETE" --max-iterations 8
+```
+
+### ONE-68: Add focus-visible styles to ShareButton
+```
+/ralph-wiggum:ralph-loop Implement ONE-68: Add focus-visible styles to ShareButton. In src/components/share-button.tsx, the button element lacks focus-visible styles. Add focus-visible outline-none ring-2 ring-ring ring-offset-2 rounded-sm classes to the button. This ensures keyboard users can see focus state. Verify by tabbing to the button. Commit as a11y ONE-68 Add focus-visible styles to ShareButton. Push to main and update Linear ONE-68 to Done. Output PROMISE ONE-68 COMPLETE when done. --completion-promise "ONE-68 COMPLETE" --max-iterations 8
+```
+
+### ONE-69: Replace native confirm with AlertDialog in coupons page
+```
+/ralph-wiggum:ralph-loop Implement ONE-69: Replace native confirm dialog with AlertDialog in coupons page. In src/app/super-admin/coupons/page.tsx line 216, window.confirm is used for delete confirmation. Import AlertDialog components from ui/alert-dialog. Create proper AlertDialog with trigger, content, title, description, and action buttons. Use onSelect with preventDefault on the DropdownMenuItem trigger. Commit as fix ONE-69 Replace native confirm with AlertDialog. Push to main and update Linear ONE-69 to Done. Output PROMISE ONE-69 COMPLETE when done. --completion-promise "ONE-69 COMPLETE" --max-iterations 10
+```
+
+### ONE-70: Replace native img tags with Next.js Image in Tailark pricing
+```
+/ralph-wiggum:ralph-loop Implement ONE-70: Replace native img tags with Next.js Image in Tailark pricing. In src/components/tailark/pricing.tsx lines 47-74, native img tags are used for external logos. First add html.tailus.io to remotePatterns in next.config. Then replace img tags with Next.js Image component. Use explicit width and height props. Keep the existing className for styling. Commit as perf ONE-70 Replace img tags with Next.js Image. Push to main and update Linear ONE-70 to Done. Output PROMISE ONE-70 COMPLETE when done. --completion-promise "ONE-70 COMPLETE" --max-iterations 10
+```
+
 ---
 
 ## Notes on Shell-Safe Prompts

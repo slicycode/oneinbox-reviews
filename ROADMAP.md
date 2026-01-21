@@ -86,24 +86,50 @@
 
 ---
 
+## Design & Accessibility (Sprint 5)
+
+> Issues from Web Interface Guidelines audit. Tracked in Linear with "Design" label.
+
+### High Priority
+- [ ] [ONE-66] Fix Image component in testimonials section (conflicting fill prop)
+- [ ] [ONE-67] Fix invalid HTML structure in super-admin users table (Link wrapping TableCell)
+- [ ] [ONE-61] Fix input font sizes to prevent iOS auto-zoom
+- [ ] [ONE-59] Fix layout shift issues with dynamic content and numbers
+
+### Medium Priority
+- [ ] [ONE-68] Add focus-visible styles to ShareButton
+- [ ] [ONE-69] Replace native confirm() with AlertDialog in coupons page
+- [ ] [ONE-65] Optimize blur filter animations for performance
+- [ ] [ONE-62] Implement consistent z-index scale across the application
+- [ ] [ONE-60] Add `@media (hover: hover)` guards for all hover effects
+- [ ] [ONE-58] Add `prefers-reduced-motion` support for all animations
+- [ ] [ONE-57] Replace `transition: all` and height animations with transform/opacity
+
+### Low Priority
+- [ ] [ONE-70] Replace native img tags with Next.js Image in Tailark pricing
+- [ ] [ONE-64] Replace hardcoded colors with design tokens
+- [ ] [ONE-56] Fix animation durations exceeding 400ms for UI elements
+
+---
+
 ## Technical Debt & Infrastructure
 
 ### Code Quality
-- [ ] Add comprehensive test coverage
-- [ ] Set up CI/CD pipeline
-- [ ] Implement error tracking (Sentry)
-- [ ] Add performance monitoring
+- [x] Add comprehensive test coverage
+- [x] Set up CI/CD pipeline
+- [x] Implement error tracking (Sentry)
+- [x] Add performance monitoring
 
 ### Security
 - [ ] Security audit of authentication flows
 - [ ] Rate limiting on all API endpoints
 - [ ] Input validation audit
-- [ ] GDPR compliance review
+- [x] GDPR compliance review
 
 ### Performance
-- [ ] Database query optimization
+- [x] Database query optimization
 - [ ] Implement caching layer
-- [ ] Image optimization
+- [x] Image optimization
 - [ ] Bundle size optimization
 
 ---
